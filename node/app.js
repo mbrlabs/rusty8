@@ -12,7 +12,10 @@ function createWindow() {
 
     if(DEBUG) {
         win.webContents.openDevTools();
-    }
+    } 
+/*    else {
+        win.setMenu(null);
+    }*/
 
     win.on('closed', () => {
         win = null;

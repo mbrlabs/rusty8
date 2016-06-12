@@ -1,3 +1,3 @@
 $(function() {
-	alert("I am a JS alert window");
+	var fs = require("fs");
 });
