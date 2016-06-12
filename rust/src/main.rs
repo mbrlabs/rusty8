@@ -17,7 +17,9 @@ mod r8;
 
 use r8::server::{Chip8Server};
 
+const DEFAULT_PORT: u16 = 7890;
+
 fn main() {
-    let server = Chip8Server::new("Rusty8 emulation server", 7890);
+    let server = Chip8Server::new("Rusty8 emulation server", DEFAULT_PORT);
     server.start();
 }

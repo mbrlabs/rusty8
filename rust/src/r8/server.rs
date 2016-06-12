@@ -13,22 +13,49 @@
 // You should have received a copy of the GNU General Public License
 // along with rusty8.  If not, see <http://www.gnu.org/licenses/>.
 
+use std::net::{TcpListener, TcpStream, SocketAddr};
+use std::thread;
+
 pub struct Chip8Server {
 	name: String,
-	port: i32,
+	port: u16,
+}
+
+fn handle_client(stream: Chip8Proccess) {
+	println!("New client connected");
 }
 
 impl Chip8Server {
 
-	pub fn new(name: &'static str, port: i32) -> Chip8Server {
+	pub fn new(name: &'static str, port: u16) -> Chip8Server {
 		return Chip8Server{name: name.to_string(), port: port};
 	}
 
 	pub fn start(&self) {
-		println!("Server running...");
-		loop {
-			// TODO accept new requests and spawn thread for emulation
+		let addr = ("localhost", self.port);
+		let listener = TcpListener::bind(addr).unwrap();
+		println!("'{}' running on port {}", self.name, self.port);
+
+		for stream in listener.incoming() {
+			match stream {
+				Ok(stream) => {
+		            thread::spawn(move|| {
+		            	let proccess = Chip8Proccess{control_stream: stream};
+		                handle_client(proccess)
+		            });				
+        		}, 
+				Err(e) => {
+					// TODO handle failed connection
+				}
+			}
 		}
-		println!("Server down.");
+
+		drop(listener);
+		println!("Shutting down server");
 	}
+}
+
+pub struct Chip8Proccess {
+	control_stream: TcpStream,
+	// ...
 }

@@ -23,8 +23,8 @@ Rust is a great language for this job, since it is (amongst other things) super 
 You will need to install the Rust programming language and the package manager cargo.
 [INSERT LINK HERE]
 
-Compile and auto-run: `cd rusty8 && cargo run`  
-Compile for release: `cd rusty8 && cargo build --release`
+Compile and auto-run: `cd rusty8/rust && cargo run`  
+Compile for release: `cd rusty8/rust && cargo build --release`
 
 For more info about rust & cargo look at their documentation, it's really awesome.
 
