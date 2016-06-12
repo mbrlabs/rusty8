@@ -11,7 +11,7 @@
 // GNU General Public License for more details.
 // 
 // You should have received a copy of the GNU General Public License
-// along with rusty8.  If not, see <http://www.gnu.org/licenses/>.
+// along with rusty8. If not, see <http://www.gnu.org/licenses/>.
 
 const electron = require('electron');
 const {app, BrowserWindow} = electron;
@@ -23,7 +23,7 @@ let win;
 
 function createWindow() {
     win = new BrowserWindow({width: 800, height: 600});
-    win.loadURL(`file://${__dirname}/index.html`);
+    win.loadURL(`file://${__dirname}/html/index.html`);
 
     if(DEBUG) {
         win.webContents.openDevTools();

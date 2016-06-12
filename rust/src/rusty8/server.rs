@@ -11,12 +11,12 @@
 // GNU General Public License for more details.
 // 
 // You should have received a copy of the GNU General Public License
-// along with rusty8.  If not, see <http://www.gnu.org/licenses/>.
+// along with rusty8. If not, see <http://www.gnu.org/licenses/>.
 
-use std::net::{TcpListener, TcpStream, SocketAddr};
+use std::net::{TcpListener, TcpStream};
 use std::thread;
 
-use chip8::process::Chip8Process;
+use rusty8::process::Chip8Process;
 
 pub struct Chip8Server {
     name: String,
@@ -39,7 +39,8 @@ impl Chip8Server {
                 Ok(stream) => {
                     thread::spawn(move|| {
                         println!("New client connected");
-                        let mut proccess = Chip8Process::new(stream);
+                        let conn = Rusty8Connection{control: stream};
+                        let mut proccess = Chip8Process::new(conn);
                         proccess.execute();
                     });             
                 }, 
@@ -53,4 +54,17 @@ impl Chip8Server {
         drop(listener);
         println!("Shutting down server");
     }
+}
+
+pub struct Rusty8Connection {
+    /// client -> server: used for sending the rom & user input
+    pub control: TcpStream,
+    // server -> client: used for sending rendering data 
+    //data_stream: TcpStream,
+    // server -> client: used for debugging
+    //debug_stream: TcpStream,
+}
+
+impl Rusty8Connection {
+    // TODO implement communication protocol here
 }

@@ -13,13 +13,26 @@
 // You should have received a copy of the GNU General Public License
 // along with rusty8. If not, see <http://www.gnu.org/licenses/>.
 
-mod rusty8;
+$(function() {
+    const fs = require('fs');
+    const net = require('net');
 
-use rusty8::server::{Chip8Server};
+    const client = net.connect(7890, '127.0.0.1', () => {
+        console.log('connected to server!');
+    });
 
-const DEFAULT_PORT: u16 = 7890;
+    client.on('data', (data) => {
+        console.log(data.toString());
+        client.end();
+    });
 
-fn main() {
-    let server = Chip8Server::new("Rusty8 emulation server", DEFAULT_PORT);
-    server.start();
-}
+    client.on('error', (ex) => {
+        console.log("handled error");
+        console.log(ex);
+    });
+
+    client.on('end', () => {
+        console.log('disconnected from server');
+    });
+
+});

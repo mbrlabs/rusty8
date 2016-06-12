@@ -13,13 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with rusty8. If not, see <http://www.gnu.org/licenses/>.
 
-mod rusty8;
-
-use rusty8::server::{Chip8Server};
-
-const DEFAULT_PORT: u16 = 7890;
-
-fn main() {
-    let server = Chip8Server::new("Rusty8 emulation server", DEFAULT_PORT);
-    server.start();
-}
+pub mod process;
+pub mod server;
+pub mod chip8;
+pub mod utils;
