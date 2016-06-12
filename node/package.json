@@ -1,17 +1,17 @@
 {
-    "name": "rusty-chip8-electron",
-    "version": "1.0.0",
-    "description": "A electron/nodjs frontend for the rusty-chip8 chip-8 emulator ",
-    "main": "app.js",
-    "scripts": {
-        "start": "./node_modules/.bin/electron ."
-    },
-    "author": "mbrlabs <mbrlabs7@gmail.com>",
-    "license": "GPL-3.0",
-    "devDependencies": {
-        "electron-prebuilt": "^1.2.2"
-    },
-    "dependencies": {
-        "jquery": "^3.0.0"
-    }
+  "name": "rusty-chip8-electron",
+  "version": "1.0.0",
+  "description": "A electron/nodjs frontend for the rusty-chip8 chip-8 emulator ",
+  "main": "app.js",
+  "scripts": {
+    "start": "./node_modules/.bin/electron ."
+  },
+  "author": "mbrlabs <mbrlabs7@gmail.com>",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "electron-prebuilt": "^1.2.2"
+  },
+  "dependencies": {
+    "jquery": "^3.0.0"
+  }
 }

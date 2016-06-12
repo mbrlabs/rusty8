@@ -21,24 +21,32 @@
         <meta charset="UTF-8">
         <title>Rusty8</title>
 
+        <link rel="stylesheet" href="../css/vendor/materialize.min.css">
         <link rel="stylesheet" href="../css/style.css">
 
-        <script>window.$ = window.jQuery = require('jquery');</script>
+        <script src="../js/vendor/jquery-3.0.0.min.js"></script>
+        <script src="../js/vendor/hammer.min.js"></script>
+        <script src="../js/vendor/materialize.min.js"></script>
         <script src="../js/main.js"></script>
     </head>
 
     <body>
-        <!-- Toolbar -->
-        <div id="toolbar">
-            <div class="toolbar-item">
-                <a href="#" id="run-btn"><i class="material-icons">play_arrow</i></a>
+        <!-- No connection to backend modal -->
+        <div id="no-conn-modal" class="modal">
+            <div class="modal-content">
+                <h4>No connection</h4>
+                <p>The backend can not be reached.<br/>Make sure to run the backend on 127.0.0.1:7890</p>
             </div>
-        </div>
+        </div> <!-- /No connection to backend modal -->
 
-        <!-- Content area -->
-        <div id="content">
-            Load a program to start
-        </div>
+        <!-- Navbar -->
+        <nav>
+            <div class="nav-wrapper">
+                <ul class="left">
+                    <li><a href="#" id="load-rom" class="btn">Load rom</a></li>
+                </ul>
+            </div>
+        </nav> <!-- /Navbar -->
 
     </body>
 

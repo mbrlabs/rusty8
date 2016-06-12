@@ -18,31 +18,32 @@ const net = require('net');
 var Rusty8Client = function(options) {
 	this.host = options.host;
 	this.port = options.port;
-	this.onConnected = options.onConnected;
 	this.onRenderCmd = options.onRenderCmd;
+	this.onEnd = options.onEnd;
 	this.conn = null;
 };
 
-Rusty8Client.prototype.connect = function() {
+Rusty8Client.prototype.connect = function(onConnected) {
 	console.log('Connecting...');
 	this.conn = net.connect(this.port, this.host, () => {
-		this.onConnected();
+		onConnected(true);
+    });
 
-		// receive data
-		this.conn.on('data', (data) => {
-	        console.log(data.toString());
-    	});
+    // connection error
+    this.conn.on('error', (ex) => {
+        console.log("handled error");
+        console.log(ex);
+		onConnected(false);
+    });
 
-		// connection error
-	    this.conn.on('error', (ex) => {
-	        console.log("handled error");
-	        console.log(ex);
-	    });
+	// receive data
+	this.conn.on('data', (data) => {
+        console.log(data.toString());
+	});
 
-	    // connection end
-	    this.conn.on('end', () => {
-	        console.log('disconnected from server');
-	    });
+    // connection end
+    this.conn.on('end', () => {
+        this.onEnd();
     });
 };
 

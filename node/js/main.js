@@ -13,26 +13,40 @@
 // You should have received a copy of the GNU General Public License
 // along with rusty8. If not, see <http://www.gnu.org/licenses/>.
 
+const SERVER_HOST = '127.0.0.1';
+const SERVER_PORT = 7890;
+
 $(function() {
     const {Renderer} = require('../js/renderer');
     const {Rusty8Client} = require('../js/client');
+    const {dialog} = require('electron').remote;
 
-    // called if connection to rusty8 server has been established
-    function onConnected() {
-    	console.log('Connected to Rusty8 server.');
+    var client = null;
+    function connect(host, port) {
+        // build client
+        client = new Rusty8Client({
+            host:           SERVER_HOST,
+            port:           SERVER_PORT,
+            onRenderCmd:    function() {
+                console.log('Rendering...');
+            },
+            onEnd:          function() {
+                $('#no-conn-modal').openModal();
+            },
+        });
+
+        // connect to backend
+        client.connect((success) => {
+            console.log('Connected to server');
+        });
     }
 
-    // called when server sedns a render command
-    function onRenderCmd() {
-    	console.log('Rendering...');
-    }
-
-    // connect to server
-    const client = new Rusty8Client({
-    	host: 			'127.0.0.1',
-    	port: 			7890,
-    	onConnected: 	onConnected,
-    	onRenderCmd: 	onRenderCmd,
+    // load rom
+    $('#load-rom').click({properties: ['openFile']}, () => {
+        dialog.showOpenDialog({properties: ['openFile']}, (file) => {
+            alert(file);
+        });
     });
-    client.connect();
+
+
 });
