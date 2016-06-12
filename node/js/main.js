@@ -16,10 +16,32 @@
 const SERVER_HOST = '127.0.0.1';
 const SERVER_PORT = 7890;
 
+var connectionErrorModalOpen = false;
+
 $(function() {
     const {Renderer} = require('../js/renderer');
     const {Rusty8Client} = require('../js/client');
     const {dialog} = require('electron').remote;
+
+    // ==================================================================================
+    //                                  Modals
+    // ==================================================================================
+
+    function connectionErrorModal(open) {
+        if(!connectionErrorModalOpen && open) {
+            $('#no-conn-modal').openModal({
+                dismissible: false,
+            });
+            connectionErrorModalOpen = true;
+        } else if(!open) {
+            $('#no-conn-modal').closeModal();
+            connectionErrorModalOpen = false;
+        }
+    }
+
+    // ==================================================================================
+    //                                  Networking
+    // ==================================================================================
 
     var client = null;
     function connect(host, port) {
@@ -31,22 +53,44 @@ $(function() {
                 console.log('Rendering...');
             },
             onEnd:          function() {
-                $('#no-conn-modal').openModal();
+                connectionErrorModal(true);
+            },
+            onError:        function() {
+                connectionErrorModal(true);
             },
         });
 
         // connect to backend
         client.connect((success) => {
-            console.log('Connected to server');
+            if(success) {
+                console.log('Connected to server');
+                connectionErrorModal(false);
+            } else {
+                connectionErrorModal(true);
+            }
         });
     }
 
+    // ==================================================================================
+    //                              UI stuff
+    // ==================================================================================
+
     // load rom
-    $('#load-rom').click({properties: ['openFile']}, () => {
+    $('#load-rom').click(() => {
         dialog.showOpenDialog({properties: ['openFile']}, (file) => {
             alert(file);
         });
     });
+
+    // retry conncting to server
+    $('#retry-connection').click(() => {
+        connect(SERVER_HOST, SERVER_PORT);
+    });
+
+    // ==================================================================================
+    //                                  Main
+    // ==================================================================================
+    connect(SERVER_HOST, SERVER_PORT);
 
 
 });

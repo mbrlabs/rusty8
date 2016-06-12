@@ -38,7 +38,8 @@ impl Chip8Process {
         // TODO 4. send rendering data to client
         
         let _ = self.conn.control.write(&[65, 76]);
-     //   let _ = self.control_stream.read(&mut [0; 128]);
+        // this blocks until the the client writes something
+        let _ = self.conn.control.read(&mut [0; 128]);
     }
 
 }

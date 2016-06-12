@@ -20,6 +20,7 @@ var Rusty8Client = function(options) {
 	this.port = options.port;
 	this.onRenderCmd = options.onRenderCmd;
 	this.onEnd = options.onEnd;
+	this.onError = options.onError;
 	this.conn = null;
 };
 
@@ -31,9 +32,7 @@ Rusty8Client.prototype.connect = function(onConnected) {
 
     // connection error
     this.conn.on('error', (ex) => {
-        console.log("handled error");
-        console.log(ex);
-		onConnected(false);
+        this.onError();
     });
 
 	// receive data
