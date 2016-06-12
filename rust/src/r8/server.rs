@@ -13,6 +13,22 @@
 // You should have received a copy of the GNU General Public License
 // along with rusty8.  If not, see <http://www.gnu.org/licenses/>.
 
-$(function() {
-	var fs = require("fs");
-});
+pub struct Chip8Server {
+	name: String,
+	port: i32,
+}
+
+impl Chip8Server {
+
+	pub fn new(name: &'static str, port: i32) -> Chip8Server {
+		return Chip8Server{name: name.to_string(), port: port};
+	}
+
+	pub fn start(&self) {
+		println!("Server running...");
+		loop {
+			// TODO accept new requests and spawn thread for emulation
+		}
+		println!("Server down.");
+	}
+}

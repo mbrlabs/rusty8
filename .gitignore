@@ -1,5 +1,6 @@
 # Rust 
-target/
+rust/target/
+rust/Cargo.lock
 
 # npm
 node/node_modules

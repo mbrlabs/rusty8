@@ -13,6 +13,11 @@
 // You should have received a copy of the GNU General Public License
 // along with rusty8.  If not, see <http://www.gnu.org/licenses/>.
 
-$(function() {
-	var fs = require("fs");
-});
+mod r8;
+
+use r8::server::{Chip8Server};
+
+fn main() {
+    let server = Chip8Server::new("Rusty8 emulation server", 7890);
+    server.start();
+}
