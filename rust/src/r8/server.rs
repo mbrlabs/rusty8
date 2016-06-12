@@ -16,13 +16,11 @@
 use std::net::{TcpListener, TcpStream, SocketAddr};
 use std::thread;
 
+use r8::process::Chip8Process;
+
 pub struct Chip8Server {
 	name: String,
 	port: u16,
-}
-
-fn handle_client(stream: Chip8Proccess) {
-	println!("New client connected");
 }
 
 impl Chip8Server {
@@ -40,8 +38,9 @@ impl Chip8Server {
 			match stream {
 				Ok(stream) => {
 		            thread::spawn(move|| {
-		            	let proccess = Chip8Proccess{control_stream: stream};
-		                handle_client(proccess)
+		            	println!("New client connected");
+		            	let proccess = Chip8Process::new(stream);
+		                proccess.execute();
 		            });				
         		}, 
 				Err(e) => {
@@ -53,9 +52,4 @@ impl Chip8Server {
 		drop(listener);
 		println!("Shutting down server");
 	}
-}
-
-pub struct Chip8Proccess {
-	control_stream: TcpStream,
-	// ...
 }

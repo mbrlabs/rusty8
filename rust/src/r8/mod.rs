@@ -13,4 +13,5 @@
 // You should have received a copy of the GNU General Public License
 // along with rusty8.  If not, see <http://www.gnu.org/licenses/>.
 
+pub mod process;
 pub mod server;
