@@ -13,9 +13,9 @@
 // You should have received a copy of the GNU General Public License
 // along with rusty8.  If not, see <http://www.gnu.org/licenses/>.
 
-mod r8;
+mod chip8;
 
-use r8::server::{Chip8Server};
+use chip8::server::{Chip8Server};
 
 const DEFAULT_PORT: u16 = 7890;
 

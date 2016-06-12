@@ -14,5 +14,5 @@
 // along with rusty8.  If not, see <http://www.gnu.org/licenses/>.
 
 $(function() {
-	var fs = require("fs");
+    var fs = require("fs");
 });
