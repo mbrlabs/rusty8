@@ -13,26 +13,16 @@
 // You should have received a copy of the GNU General Public License
 // along with rusty8. If not, see <http://www.gnu.org/licenses/>.
 
-$(function() {
-    const fs = require('fs');
-    const net = require('net');
+var Renderer = function(canvas) {
+	this.canvas = canvas;
+};
 
-    const client = net.connect(7890, '127.0.0.1', () => {
-        console.log('connected to server!');
-    });
+Renderer.prototype.drawRectangle = function(x, y, width, height, color) {
+	// TODO 
+};
 
-    client.on('data', (data) => {
-        console.log(data.toString());
-        client.end();
-    });
+Renderer.prototype.clear = function(color) {
+	// TODO clear canvas
+};
 
-    client.on('error', (ex) => {
-        console.log("handled error");
-        console.log(ex);
-    });
-
-    client.on('end', () => {
-        console.log('disconnected from server');
-    });
-
-});
+module.exports.Renderer = Renderer;
