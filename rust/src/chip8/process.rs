@@ -14,6 +14,7 @@
 // along with rusty8.  If not, see <http://www.gnu.org/licenses/>.
 
 use std::net::{TcpStream};
+use std::io::{Write, Read};
 
 pub struct Chip8Process {
     /// client -> server: used for sending the rom & user input
@@ -38,11 +39,14 @@ impl Chip8Process {
         return process;
     }
 
-    pub fn execute(&self) {
+    pub fn execute(&mut self) {
         // TODO 1. receive rom
         // TODO 2. start emulating
         // TODO 3. receive input commands & apply them
         // TODO 4. send rendering data to client
+        
+        let _ = self.control_stream.write(&[65, 76]);
+     //   let _ = self.control_stream.read(&mut [0; 128]);
     }
 
 }

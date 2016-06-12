@@ -30,7 +30,7 @@ impl Chip8Server {
     }
 
     pub fn start(&self) {
-        let addr = ("localhost", self.port);
+        let addr = ("127.0.0.1", self.port);
         let listener = TcpListener::bind(addr).unwrap();
         println!("'{}' running on port {}", self.name, self.port);
 
@@ -39,12 +39,13 @@ impl Chip8Server {
                 Ok(stream) => {
                     thread::spawn(move|| {
                         println!("New client connected");
-                        let proccess = Chip8Process::new(stream);
+                        let mut proccess = Chip8Process::new(stream);
                         proccess.execute();
                     });             
                 }, 
                 Err(e) => {
                     // TODO handle failed connection
+                    println!("Error");
                 }
             }
         }
