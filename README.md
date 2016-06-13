@@ -17,7 +17,8 @@ for rendering.
 
 ## Backend
 The emulation of the chip-8 chip & execution of the program is done in the backend, which is written in Rust.
-Rust is a great language for this job, since it is (amongst other things) super fast.
+Rust is a great language for this job, since it is (amongst other things) super fast and supports 
+unsigned integers.
 
 ### Compiling the backend
 You will need to install the Rust programming language and the package manager cargo.
