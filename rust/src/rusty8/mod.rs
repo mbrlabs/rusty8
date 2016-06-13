@@ -17,3 +17,59 @@ pub mod process;
 pub mod server;
 pub mod chip8;
 pub mod utils;
+
+#[cfg(test)]
+mod tests {
+
+	use rusty8::utils::Stack;
+
+	#[test]
+    fn stack_basics() {
+    	let mut stack = Stack::new();
+
+    	stack.push(7);
+    	assert_eq!(stack.pop(), 7);
+
+    	stack.push(13);
+    	stack.push(9);
+    	stack.push(7);
+    	stack.push(3);
+    	stack.push(8);
+    	assert_eq!(stack.pop(), 8);
+    	assert_eq!(stack.pop(), 3);
+    	assert_eq!(stack.pop(), 7);
+    	assert_eq!(stack.pop(), 9);
+    	assert_eq!(stack.pop(), 13);
+    }
+
+    #[test]
+    #[should_panic]
+    fn stack_overflow() {
+    	let mut stack = Stack::new();
+    	stack.push(7);
+    	stack.pop();
+    	stack.pop();
+    }
+
+    #[test]
+    #[should_panic]
+    fn stack_underflow() {
+    	let mut stack = Stack::new();
+    	for i in 0..17 {
+    		stack.push(i);
+    	}
+    }
+
+    #[test]
+    fn stack_test_limits() {
+    	let mut stack = Stack::new();
+    	for i in 0..15 {
+    		stack.push(i);
+    	}
+
+    	for i in 0..15 {
+    		stack.pop();
+    	}
+    }
+
+}

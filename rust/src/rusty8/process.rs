@@ -13,19 +13,24 @@
 // You should have received a copy of the GNU General Public License
 // along with rusty8. If not, see <http://www.gnu.org/licenses/>.
 
-use rusty8::server::{Rusty8Connection};
+use rusty8::server::Rusty8Connection;
+use rusty8::chip8::Chip8;
+
 use std::io::{Read, Write};
 
 pub struct Chip8Process {
     /// rusty8 connection 
-    conn: Rusty8Connection,
+    conn:   Rusty8Connection,
+    /// emulator
+    chip8:  Chip8,
 }
 
 impl Chip8Process {
 
     pub fn new(conn: Rusty8Connection) -> Chip8Process {
         let process = Chip8Process{
-            conn: conn,
+            conn:   conn,
+            chip8:  Chip8::new(),
         };
 
         return process;

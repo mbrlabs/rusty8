@@ -39,7 +39,7 @@ impl Stack {
             panic!("Stack underflow!"); 
         }
         self.ptr -= 1;
-        return self.data[self.ptr - 1];
+        return self.data[self.ptr + 1];
     }
 
     pub fn peek(&self) -> u16 {
