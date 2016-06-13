@@ -50,7 +50,7 @@ pub struct Chip8 {
     /// Index register. Used to store addresses
     i:          u8,
     /// Program counter
-    pc:         u8,
+    pc:         usize,
     /// Delay timer. Decrements at 60hz if set to a value > 0
     delay:      u8,
     /// Sound timer. Decrements at 60hz if set to a value > 0. As long as > 0, chip-8 will beep.
@@ -66,7 +66,7 @@ impl Chip8 {
     pub fn new() -> Chip8 {
         let mut chip = Chip8 {
             mem: [0; MEMORY_SIZE], v: [0; REGISTER_COUNT],
-            i: 0, pc: 0, delay: 0, sound: 0, 
+            i: 0, pc: 0x200, delay: 0, sound: 0, 
             stack: Stack::new(), draw_flag: false,
         };
 
@@ -87,11 +87,41 @@ impl Chip8 {
     }
 
     pub fn tick(&mut self) {
-        // TODO fetch opcode
-        // TODO decode opcode
-        // TODO execute opcode
+        // fetch
+        let opcode: u16 = (self.mem[self.pc] as u16) << 8 | (self.mem[self.pc + 1] as u16);
+
+        // decode && execute
+        match opcode & 0xF000 {
+            0x0 => {
+                match opcode & 0xFF00 {
+                    0x00E0 => {},
+                    0x00EE => {},
+                    _      => {/* 0x0NNN may be a candidate here */}
+                }
+            },
+            0x1 => {},
+            0x2 => {},
+            0x3 => {},
+            0x4 => {},
+            0x5 => {},
+            0x6 => {},
+            0x7 => {},
+            0x8 => {},
+            0x9 => {},
+            0xA => {},
+            0xB => {},
+            0xC => {},
+            0xD => {},
+            0xE => {},
+            0xF => {},
+            _   => {},
+        }
 
         // update timer registers
+    }
+
+    pub fn draw_requested(&self) -> bool {
+        return self.draw_flag;
     }
 
 

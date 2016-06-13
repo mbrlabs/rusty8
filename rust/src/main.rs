@@ -18,6 +18,7 @@ mod rusty8;
 use std::env;
 use rusty8::server::{Chip8Server};
 use rusty8::chip8::Chip8;
+use rusty8::utils;
 
 const DEFAULT_PORT: u16 = 7890;
 
@@ -40,7 +41,10 @@ fn standalone_mode(rom: &String) {
 
 	loop {
 		chip8.tick();
-		// TODO all the other stuff
+		if chip8.draw_requested() {
+			utils::render_to_term(&chip8);
+		}
+		// TODO do input
 	}
 }
 
