@@ -15,11 +15,36 @@
 
 mod rusty8;
 
+use std::env;
 use rusty8::server::{Chip8Server};
+use rusty8::chip8::Chip8;
 
 const DEFAULT_PORT: u16 = 7890;
 
 fn main() {
+	let args: Vec<String> = env::args().collect();
+	
+	// start in standalone mode & render to terminal
+	if args.len() == 2 { 
+		standalone_mode(&args[1]);
+	// start in server mode
+	} else { 
+    	server_mode();
+	}
+}
+
+fn standalone_mode(rom: &String) {
+	println!("Loading ROM: {}", rom);
+	let mut chip8 = Chip8::new();
+	chip8.load_rom_from_file(rom);
+
+	loop {
+		chip8.tick();
+		// TODO all the other stuff
+	}
+}
+
+fn server_mode() {
     let server = Chip8Server::new("Rusty8 emulation server", DEFAULT_PORT);
-    server.start();
+	server.start();
 }

@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU General Public License
 // along with rusty8. If not, see <http://www.gnu.org/licenses/>.
 
+use rusty8::chip8::Chip8;
+
 const SIZE: usize = 16;
 
 pub struct Stack {
@@ -45,5 +47,8 @@ impl Stack {
     pub fn peek(&self) -> u16 {
         return self.data[self.ptr];
     }
+}
+
+pub fn render_to_term(chip: &Chip8) {
 
 }

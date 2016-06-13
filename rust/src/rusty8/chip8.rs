@@ -57,6 +57,8 @@ pub struct Chip8 {
     sound:      u8,
     /// Stack, used for jump instructions & subroutines
     stack:      Stack,
+    /// Set to true if screen must be updated
+    draw_flag:  bool,
 }
 
 impl Chip8 {
@@ -64,7 +66,8 @@ impl Chip8 {
     pub fn new() -> Chip8 {
         let mut chip = Chip8 {
             mem: [0; MEMORY_SIZE], v: [0; REGISTER_COUNT],
-            i: 0, pc: 0, delay: 0, sound: 0, stack: Stack::new(),
+            i: 0, pc: 0, delay: 0, sound: 0, 
+            stack: Stack::new(), draw_flag: false,
         };
 
         // load font
@@ -75,11 +78,15 @@ impl Chip8 {
         return chip;
     }
 
-    pub fn loadRom() {
+    pub fn load_rom(&mut self, rom: Vec<u8>) {
         // TODO implement
     }
 
-    pub fn tick() {
+    pub fn load_rom_from_file(&mut self, path: &String) {
+
+    }
+
+    pub fn tick(&mut self) {
         // TODO fetch opcode
         // TODO decode opcode
         // TODO execute opcode

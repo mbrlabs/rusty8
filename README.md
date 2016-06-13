@@ -5,15 +5,16 @@ The backend is written in Rust, the frontend in NodeJS/HTML/CSS.
 
 ## How does it work
 The backend emulates the program, whereas the frontend is responsible for rendering and input.
-Both parts communicate over TCP. One connection from frontend to backend for
-sending user input and one connection from backend to frontend for sending the data
-for rendering.
+Both parts communicate over TCP.
 
 	+------------+       data        +-----------+
 	|            |  -------------->  |           |
 	|  Backend   |       input       | Frontend  |
 	|            |  <--------------  |           |
 	+------------+                   +-----------+
+
+The backend can also be run in standalone mode by providing the path of a rom as commandline argument.
+This mode 'renders' everything to the terminal.
 
 ## Backend
 The emulation of the chip-8 chip & execution of the program is done in the backend, which is written in Rust.
