@@ -140,25 +140,39 @@ impl Chip8 {
             },
             0x7 => {
                 // 7XNN: Adds NN to VX
-                // TODO implement
+                let register = (opcode & 0x0F00) >> 8;
+                self.v[register as usize] += (opcode & 0x00FF) as u8;;
+                self.pc += 2;
             },
             0x8 => {
                 match opcode & 0x000F {
                     0x0000 => {
                         // 8XY0: Sets VX to the value of VY
-                        // TODO implement
+                        let vx = opcode & 0x0F00 >> 8;
+                        let vy = opcode & 0x00F0 >> 4;
+                        self.v[vx as usize] = self.v[vy as usize];
+                        self.pc += 2;
                     },
                     0x0001 => {
                         // 8XY1: Sets VX to VX or VY
-                        // TODO implement
+                        let vx = opcode & 0x0F00 >> 8;
+                        let vy = opcode & 0x00F0 >> 4;
+                        self.v[vx as usize] |= self.v[vy as usize];
+                        self.pc += 2;
                     }, 
                     0x0002 => {
                         // 8XY2: Sets VX to VX and VY
-                        // TODO implement
+                        let vx = opcode & 0x0F00 >> 8;
+                        let vy = opcode & 0x00F0 >> 4;
+                        self.v[vx as usize] &= self.v[vy as usize];
+                        self.pc += 2;
                     }, 
                     0x0003 => {
                         // 8XY3: Sets VX to VX xor VY
-                        // TODO implement
+                        let vx = opcode & 0x0F00 >> 8;
+                        let vy = opcode & 0x00F0 >> 4;
+                        self.v[vx as usize] ^= self.v[vy as usize];
+                        self.pc += 2;
                     }, 
                     0x0004 => {
                         // 8XY4: Adds VY to VX. VF is set to 1 when there's a carry, 
@@ -241,7 +255,9 @@ impl Chip8 {
                 match opcode & 0x00FF {
                     0x0007 => {
                         // FX07: Sets VX to the value of the delay timer
-                        // TODO implement
+                        let vx = (opcode & 0x0F00) >> 8;
+                        self.v[vx] = self.delay;
+                        self.pc += 2;
                     }, 
                     0x000A => {
                         // FX0A: A key press is awaited, and then stored in VX
