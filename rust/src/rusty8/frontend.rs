@@ -26,6 +26,12 @@ pub struct TermFrontend {
     // TODO
 }
 
+impl TermFrontend {
+    pub fn new() -> TermFrontend {
+        return TermFrontend{};
+    }
+}
+
 impl Frontend for TermFrontend {
     fn clear(&self) {
 

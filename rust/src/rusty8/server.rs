@@ -14,6 +14,7 @@
 // along with rusty8. If not, see <http://www.gnu.org/licenses/>.
 
 use std::net::{TcpListener, TcpStream};
+use std::io::{Read, Write};
 use std::thread;
 
 use rusty8::process::Process;
@@ -22,6 +23,42 @@ use rusty8::frontend::{RemoteFrontend, Frontend};
 pub struct Chip8Server {
     name: String,
     port: u16,
+}
+
+// TODO this is NOT tested and will fail to 99.999% ;)
+fn handle_request(mut stream: TcpStream) {
+    println!("New client connected. Reading rom...");
+    let mut buf: [u8; 2] = [0; 2];
+    let mut bytes_read = stream.read(&mut buf).unwrap();
+
+    if bytes_read != 2 {
+        println!("Error while reading the rom");
+        drop(stream);
+        return;
+    } 
+
+    // read rom size
+    let mut rom_size: usize = ((buf[0] as u16) << 8 | buf[1] as u16) as usize;
+    
+    // read rom
+    let mut rom: Vec<u8> = Vec::new();
+    let mut buf: [u8; 64] = [0; 64];
+    while rom_size > 0 {
+        bytes_read = stream.read(&mut buf).unwrap();
+        if bytes_read <= rom_size {
+            rom_size -= bytes_read;
+            rom.extend_from_slice(&buf); // TODO may not work
+        } else {
+            println!("Rom size exeeds then described size in header");
+            drop(stream);
+            return;
+        }
+    } 
+
+    // create process and start emulating
+    let remote = RemoteFrontend::new(stream);
+    let mut proccess = Process::new(remote);
+    proccess.run(rom);
 }
 
 impl Chip8Server {
@@ -39,10 +76,7 @@ impl Chip8Server {
             match stream {
                 Ok(stream) => {
                     thread::spawn(move|| {
-                        println!("New client connected");
-                        let remote = RemoteFrontend::new(stream) ;
-                        let mut proccess = Process::new(remote);
-                        proccess.run();
+                        handle_request(stream);
                     });             
                 }, 
                 Err(e) => {

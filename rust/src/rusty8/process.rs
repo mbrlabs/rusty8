@@ -15,13 +15,14 @@
 
 use rusty8::chip8::Chip8;
 use rusty8::frontend::Frontend;
-use std::io::{Read, Write};
 
 pub struct Process<T: Frontend> {
     /// Frontend, used for rendering & input
     frontend:   T,
     /// emulator
     chip8:  Chip8,
+    /// is our process still running?
+    running: bool,
 }
 
 impl<T: Frontend> Process<T> {
@@ -29,24 +30,30 @@ impl<T: Frontend> Process<T> {
     pub fn new(frontend: T) -> Process<T> {
         let process = Process {
             frontend:   frontend,
-            chip8:  Chip8::new(),
+            chip8:      Chip8::new(),
+            running:    false,
         };
 
         return process;
     }
 
-    pub fn run(&mut self) {
-        loop {
+    pub fn run(&mut self, rom: Vec<u8>) {
+        // load rom
+        self.chip8.load_rom(rom);
+        self.running = true;
+
+        // start emulating
+        while self.is_running() {
             self.frontend.do_input(&mut self.chip8);
             self.chip8.tick();
             if self.chip8.draw_requested() {
                 self.frontend.render(&self.chip8);
             }            
         }
+    }
 
-        //let _ = self.conn.control.write(&[65, 76]);
-        // this blocks until the the client writes something
-        //let _ = self.conn.control.read(&mut [0; 128]);
+    pub fn is_running(&self) -> bool {
+        return self.running;
     }
 
 }

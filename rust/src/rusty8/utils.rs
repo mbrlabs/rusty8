@@ -13,7 +13,9 @@
 // You should have received a copy of the GNU General Public License
 // along with rusty8. If not, see <http://www.gnu.org/licenses/>.
 
-use rusty8::chip8::Chip8;
+use std::io;
+use std::io::prelude::*;
+use std::fs::File;
 
 const SIZE: usize = 16;
 
@@ -47,8 +49,17 @@ impl Stack {
     pub fn peek(&self) -> u16 {
         return self.data[self.ptr];
     }
+
+    pub fn clear(&mut self) {
+        self.ptr = 0; 
+    }
+    
 }
 
-pub fn render_to_term(chip: &Chip8) {
-    
+pub fn read_file(path: &String) -> Result<Vec<u8>, io::Error> {
+    let mut data: Vec<u8> = Vec::new();
+    let mut file = try!(File::open(path));
+    file.read_to_end(&mut data);
+
+    return Ok(data);
 }

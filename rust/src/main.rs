@@ -18,6 +18,9 @@ mod rusty8;
 use std::env;
 use rusty8::server::{Chip8Server};
 use rusty8::chip8::Chip8;
+use rusty8::process::Process;
+use rusty8::frontend::{TermFrontend, Frontend};
+
 use rusty8::utils;
 
 const DEFAULT_PORT: u16 = 7890;
@@ -34,18 +37,12 @@ fn main() {
 	}
 }
 
-fn standalone_mode(rom: &String) {
-	println!("Loading ROM: {}", rom);
-	let mut chip8 = Chip8::new();
-	chip8.load_rom_from_file(rom);
-
-	loop {
-		chip8.tick();
-		if chip8.draw_requested() {
-			utils::render_to_term(&chip8);
-		}
-		// TODO do input
-	}
+fn standalone_mode(path_to_rom: &String) {
+	println!("Loading ROM: {}", path_to_rom);
+    let rom: Vec<u8> = utils::read_file(path_to_rom).unwrap();
+    println!("Rom loaded: {} bytes", rom.len());
+	let mut process = Process::new(TermFrontend::new());
+	process.run(rom);
 }
 
 fn server_mode() {

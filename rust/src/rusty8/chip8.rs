@@ -15,7 +15,9 @@
 
 extern crate rand;
 
+use rusty8::utils;
 use rusty8::utils::Stack;
+
 
 /// Built in font set; starts at mem address 0x50 (80)
 const FONT: [u8; 80] = [
@@ -46,7 +48,7 @@ pub struct Chip8 {
     /// 0x000-0x1FF - Chip 8 interpreter. Just leave this empty..
     /// 0x050-0x0A0 - Used for the built in 4x5 pixel font set (0-F)
     /// 0x200-0xFFF - Program ROM and work RAM
-    mem:        [u8; MEMORY_SIZE],     
+    pub mem:        [u8; MEMORY_SIZE],     
     /// 16 registers. 0-14 general purpose. 
     /// 15th register: carry flag, set if sprite is set from 1 to 0 (collision detection)
     v:          [u8; REGISTER_COUNT],
@@ -84,11 +86,30 @@ impl Chip8 {
     }
 
     pub fn load_rom(&mut self, rom: Vec<u8>) {
-        // TODO implement
+        if rom.len() > 3000 {
+            panic!("Rom to big: {} bytes", rom.len());
+        }
+
+        // According to this: http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#2.1
+        // most programs start at 0x200
+        for i in 0..rom.len() {
+            self.mem[0x200 + i] = rom[i];
+        }
     }
 
-    pub fn load_rom_from_file(&mut self, path: &String) {
-
+    pub fn reset(&mut self) {
+        self.stack.clear();
+        self.pc = 0x200;
+        self.i = 0;
+        self.delay = 0;
+        self.sound = 0;
+        for i in 0..self.mem.len() {
+            self.mem[i] = 0;
+        }
+        for i in 0..self.v.len() {
+            self.v[i] = 0;
+        }
+        self.draw_flag = false;
     }
 
     pub fn tick(&mut self) {
@@ -313,6 +334,4 @@ impl Chip8 {
     pub fn draw_requested(&self) -> bool {
         return self.draw_flag;
     }
-
-
 }
