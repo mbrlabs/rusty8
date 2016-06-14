@@ -17,6 +17,7 @@ extern crate rand;
 
 use rusty8::utils::Stack;
 
+/// Built in font set; starts at mem address 0x50 (80)
 const FONT: [u8; 80] = [
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
     0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -35,6 +36,12 @@ const FONT: [u8; 80] = [
     0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 ];
+
+/// Hexadecimal keyboard
+const KEYS: [u8; 16] = [
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 
+    0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,  
+];  
 
 const MEMORY_SIZE: usize = 4096;
 const REGISTER_COUNT: usize = 16;
@@ -256,7 +263,7 @@ impl Chip8 {
                     0x0007 => {
                         // FX07: Sets VX to the value of the delay timer
                         let vx = (opcode & 0x0F00) >> 8;
-                        self.v[vx] = self.delay;
+                        self.v[vx as usize] = self.delay;
                         self.pc += 2;
                     }, 
                     0x000A => {
