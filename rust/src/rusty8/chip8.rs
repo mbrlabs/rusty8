@@ -37,12 +37,6 @@ const FONT: [u8; 80] = [
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 ];
 
-/// Hexadecimal keyboard
-const KEYS: [u8; 16] = [
-    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 
-    0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,  
-];  
-
 const MEMORY_SIZE: usize = 4096;
 const REGISTER_COUNT: usize = 16;
 
@@ -64,6 +58,8 @@ pub struct Chip8 {
     delay:      u8,
     /// Sound timer. Decrements at 60hz if set to a value > 0. As long as > 0, chip-8 will beep.
     sound:      u8,
+    /// Stores state of key; if true => pressed
+    keys:       [bool; 16],
     /// Stack, used for jump instructions & subroutines
     stack:      Stack,
     /// Set to true if screen must be updated
@@ -75,7 +71,7 @@ impl Chip8 {
     pub fn new() -> Chip8 {
         let mut chip = Chip8 {
             mem: [0; MEMORY_SIZE], v: [0; REGISTER_COUNT],
-            i: 0, pc: 0x200, delay: 0, sound: 0, 
+            i: 0, pc: 0x200, delay: 0, sound: 0, keys: [false; 16],
             stack: Stack::new(), draw_flag: false,
         };
 
@@ -215,9 +211,10 @@ impl Chip8 {
                 let vx = (opcode & 0x0F00) >> 8;
                 let vy = (opcode & 0x00F0) >> 4;
                 if self.v[vx as usize] != self.v[vy as usize] {
+                    self.pc += 4;
+                } else {
                     self.pc += 2;
                 }
-                self.pc += 2;
             },
             0xA => {
                 // ANNN: Sets I to the address NNN

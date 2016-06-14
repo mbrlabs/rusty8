@@ -13,42 +13,54 @@
 // You should have received a copy of the GNU General Public License
 // along with rusty8. If not, see <http://www.gnu.org/licenses/>.
 
+use std::net::TcpStream;
 use rusty8::chip8::Chip8;
 
-const SIZE: usize = 16;
+pub trait Frontend {
+    fn clear(&self);
+    fn render(&self, chip: &Chip8);
+    fn do_input(&self, chip: &mut Chip8);
+} 
 
-pub struct Stack {
-    data: [u16; 16],
-    ptr:  usize,
+pub struct TermFrontend {
+    // TODO
 }
 
-impl Stack {
+impl Frontend for TermFrontend {
+    fn clear(&self) {
+
+    }
+
+    fn render(&self, chip: &Chip8) {
+
+    }
+
+    fn do_input(&self, chip: &mut Chip8) {
+
+    }
+}
+
+pub struct RemoteFrontend {
+    stream: TcpStream,
+}
+
+impl RemoteFrontend {
+    pub fn new(stream: TcpStream) -> RemoteFrontend {
+        return RemoteFrontend{stream: stream};
+    }
+}
+
+impl Frontend for RemoteFrontend {
+    fn clear(&self) {
+
+    }
+
+    fn render(&self, chip: &Chip8) {
+
+    }
     
-    pub fn new() -> Stack {
-        return Stack{data: [0; SIZE], ptr: 0};
-    }
+    fn do_input(&self, chip: &mut Chip8) {
 
-    pub fn push(&mut self, n: u16) {
-        if self.ptr == SIZE - 1 { 
-            panic!("Stack overflow!"); 
-        }
-        self.ptr += 1;
-        self.data[self.ptr] = n;
-    }
-
-    pub fn pop(&mut self) -> u16 {
-        if self.ptr == 0 { 
-            panic!("Stack underflow!"); 
-        }
-        self.ptr -= 1;
-        return self.data[self.ptr + 1];
-    }
-
-    pub fn peek(&self) -> u16 {
-        return self.data[self.ptr];
     }
 }
 
-pub fn render_to_term(chip: &Chip8) {
-    
-}

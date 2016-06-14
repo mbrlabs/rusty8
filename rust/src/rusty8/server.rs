@@ -16,7 +16,8 @@
 use std::net::{TcpListener, TcpStream};
 use std::thread;
 
-use rusty8::process::Chip8Process;
+use rusty8::process::Process;
+use rusty8::frontend::{RemoteFrontend, Frontend};
 
 pub struct Chip8Server {
     name: String,
@@ -39,9 +40,9 @@ impl Chip8Server {
                 Ok(stream) => {
                     thread::spawn(move|| {
                         println!("New client connected");
-                        let conn = Rusty8Connection{control: stream};
-                        let mut proccess = Chip8Process::new(conn);
-                        proccess.execute();
+                        let remote = RemoteFrontend::new(stream) ;
+                        let mut proccess = Process::new(remote);
+                        proccess.run();
                     });             
                 }, 
                 Err(e) => {
@@ -54,17 +55,4 @@ impl Chip8Server {
         drop(listener);
         println!("Shutting down server");
     }
-}
-
-pub struct Rusty8Connection {
-    /// client -> server: used for sending the rom & user input
-    pub control: TcpStream,
-    // server -> client: used for sending rendering data 
-    //data_stream: TcpStream,
-    // server -> client: used for debugging
-    //debug_stream: TcpStream,
-}
-
-impl Rusty8Connection {
-    // TODO implement communication protocol here
 }

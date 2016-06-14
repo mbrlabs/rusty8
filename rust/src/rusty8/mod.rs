@@ -17,6 +17,7 @@ pub mod process;
 pub mod server;
 pub mod chip8;
 pub mod utils;
+pub mod frontend;
 
 #[cfg(test)]
 mod tests {

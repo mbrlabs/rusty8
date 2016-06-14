@@ -13,38 +13,40 @@
 // You should have received a copy of the GNU General Public License
 // along with rusty8. If not, see <http://www.gnu.org/licenses/>.
 
-use rusty8::server::Rusty8Connection;
 use rusty8::chip8::Chip8;
-
+use rusty8::frontend::Frontend;
 use std::io::{Read, Write};
 
-pub struct Chip8Process {
-    /// rusty8 connection 
-    conn:   Rusty8Connection,
+pub struct Process<T: Frontend> {
+    /// Frontend, used for rendering & input
+    frontend:   T,
     /// emulator
     chip8:  Chip8,
 }
 
-impl Chip8Process {
+impl<T: Frontend> Process<T> {
 
-    pub fn new(conn: Rusty8Connection) -> Chip8Process {
-        let process = Chip8Process{
-            conn:   conn,
+    pub fn new(frontend: T) -> Process<T> {
+        let process = Process {
+            frontend:   frontend,
             chip8:  Chip8::new(),
         };
 
         return process;
     }
 
-    pub fn execute(&mut self) {
-        // TODO 1. receive rom
-        // TODO 2. start emulating
-        // TODO 3. receive input commands & apply them
-        // TODO 4. send rendering data to client
-        
-        let _ = self.conn.control.write(&[65, 76]);
+    pub fn run(&mut self) {
+        loop {
+            self.frontend.do_input(&mut self.chip8);
+            self.chip8.tick();
+            if self.chip8.draw_requested() {
+                self.frontend.render(&self.chip8);
+            }            
+        }
+
+        //let _ = self.conn.control.write(&[65, 76]);
         // this blocks until the the client writes something
-        let _ = self.conn.control.read(&mut [0; 128]);
+        //let _ = self.conn.control.read(&mut [0; 128]);
     }
 
 }
