@@ -62,12 +62,17 @@ pub struct Chip8 {
     sound:      u8,
     /// Stores state of key; if true => pressed
     keys:       [bool; 16],
+    /// Stores sprites, drawn by DXYN
+    gfx:        [u8; 64*32],
     /// Stack, used for jump instructions & subroutines
     stack:      Stack,
     /// Set to true if screen must be updated
     draw_flag:  bool,
     /// Set to true if the screen needs to be cleared
     clear_flag:  bool,
+    /// Set to the key value that has been pressed during the last tick.
+    /// If >= 16, no key has been pressed in the last tick.
+    last_tick_pressed: u8,
 }
 
 impl Chip8 {
@@ -77,11 +82,12 @@ impl Chip8 {
             mem: [0; MEMORY_SIZE], v: [0; REGISTER_COUNT],
             i: 0, pc: 0x200, delay: 0, sound: 0, keys: [false; 16],
             stack: Stack::new(), draw_flag: false, clear_flag: false,
+            last_tick_pressed: 255, gfx: [0; 64*32],
         };
 
         // load font
         for i in 0..FONT.len() {
-            chip.mem[80 + i] = FONT[i];
+            chip.mem[i] = FONT[i];
         }
 
         return chip;
@@ -249,7 +255,7 @@ impl Chip8 {
                         // 8XY6: Shifts VX right by one. VF is set to the value of the 
                         // least significant bit of VX before the shift
                         let vx = (opcode & 0x0F00) as usize;
-                        self.v[0xF] = (self.v[vx] & 0x000F) >> 3;
+                        self.v[0xF] = (self.v[vx] & 0x0F) >> 3;
                         self.v[vx] = self.v[vx] >> 1;
                         self.pc += 2;
                     }, 
@@ -312,17 +318,47 @@ impl Chip8 {
                 // (i.e. it toggles the screen pixels). Sprites are drawn starting at position VX, VY. 
                 // N is the number of 8bit rows that need to be drawn. If N is greater than 1, second 
                 // line continues at position VX, VY+1, and so on
-                // TODO implement
+                let x = ((opcode & 0x0F00) >> 8) as usize;
+                let y = ((opcode & 0x00F0) >> 4) as usize;
+                let height = (opcode & 0x000F) as usize;
+                let mut pixel: u8 = 0;
+
+                self.v[0xF] = 0;
+                for x_line in 0..height {
+                    pixel = self.mem[(self.i as usize) + x_line];
+                    for y_line in 0..8 {
+                        if (pixel & (0x80 >> x_line)) != 0 {
+                            // "collision" check
+                            if self.gfx[(x + x_line + ((y + y_line) * 64))] == 1 {
+                                self.v[0xF] = 1;
+                            }
+                            // draw
+                            self.gfx[x + x_line + ((y + y_line) * 64)] ^= 1;
+                        }
+                    }
+                }
+                self.draw_flag = true;
+                self.pc += 2;
             },
             0xE => {
                 match opcode & 0x00FF {
                     0x009E => {
                         // EX9E: Skips the next instruction if the key stored in VX is pressed
-                        // TODO implement
+                        let vx = (opcode & 0x0F00) >> 8;
+                        if vx <= 0xF && self.keys[vx as usize] {
+                            self.pc += 4;
+                        } else {
+                            self.pc += 2;
+                        }
                     },
                     0x00A1 => {
                         // EXA1: Skips the next instruction if the key stored in VX isn't pressed
-                        // TODO implement
+                        let vx = (opcode & 0x0F00) >> 8;
+                        if vx <= 0xF && self.keys[vx as usize] {
+                            self.pc += 2;
+                        } else {
+                            self.pc += 4;
+                        }
                     },
                     _      => {/* Unsupported opcode */}
                 }
@@ -337,7 +373,10 @@ impl Chip8 {
                     }, 
                     0x000A => {
                         // FX0A: A key press is awaited, and then stored in VX
-                        // TODO implement
+                        if self.last_tick_pressed < 16 {
+                            let vx = ((opcode & 0x0F00) >> 8) as usize;
+                            self.v[vx] = self.last_tick_pressed;
+                        }
                     }, 
                     0x0015 => {
                         // FX15: Sets the delay timer to VX
@@ -361,6 +400,9 @@ impl Chip8 {
                         // FX29: Sets I to the location of the sprite for the character in VX. 
                         // Characters 0-F (in hexadecimal) are represented by a 4x5 font
                         // TODO implement
+                        let vx = ((opcode & 0x0F00) >> 8) as usize;
+                        self.i = (self.v[vx] as u16) * 5;
+                        self.pc += 2;
                     },
                     0x0033 => {
                         // FX33: Stores the binary-coded decimal representation of VX, with 
@@ -407,6 +449,16 @@ impl Chip8 {
 
     pub fn clear_requested(&self) -> bool {
         return self.clear_flag;
+    }
+
+    pub fn set_keys(&mut self, keys: [bool; 16]) {
+        self.last_tick_pressed = 255; // reset key press during last tick
+        for i in 0..16 {
+            if !self.keys[i] && keys[i] && self.last_tick_pressed == 255 { // check for == 255 is maybe not neccessary
+                self.last_tick_pressed = i as u8;
+            }
+            self.keys[i] = keys[i];
+        }
     }
 
 }
