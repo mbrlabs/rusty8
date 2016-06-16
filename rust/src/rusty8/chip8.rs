@@ -130,22 +130,22 @@ impl Chip8 {
                     },
                     0x00EE => {
                         // 00EE: Returns from a subroutine
-                        // TODO implement
+                        self.pc = self.stack.pop();
                     },
                     _      => {
                         // 0x0NNN: Calls RCA 1802 program at address NNN. 
                         // Not necessary for most ROMs
-                        // TODO implement
                     }
                 }
             },
             0x1 => {
                 // 1NNN: Jumps to address NNN
-                // TODO implement
+                self.pc = (opcode & 0x0FFF) as usize;
             },
             0x2 => {
                 // 2NNN: Calls subroutine at NNN
-                // TODO implement
+                self.stack.push(self.pc);
+                self.pc = (opcode & 0x0FFF) as usize;
             },
             0x3 => {
                 // 3XNN: Skips the next instruction if VX equals NN
@@ -222,12 +222,28 @@ impl Chip8 {
                     0x0004 => {
                         // 8XY4: Adds VY to VX. VF is set to 1 when there's a carry, 
                         // and to 0 when there isn't
-                        // TODO implement
+                        let vx = (opcode & 0x0F00) >> 8;
+                        let vy = (opcode & 0x00F0) >> 4;
+                        let sum = (self.v[vx as usize] as u16) + (self.v[vy as usize] as u16);
+                        self.v[0xF] = match sum > 255 { 
+                            true => 1,
+                            false => 0,
+                        };
+                        self.v[vx as usize] += self.v[vy as usize];
+                        self.pc += 2;
                     },
                     0x0005 => {
                         // 8XY5: VY is subtracted from VX. VF is set to 0 when there's 
                         // a borrow, and 1 when there isn't
-                        // TODO implement
+                        let vx = (opcode & 0x0F00) >> 8;
+                        let vy = (opcode & 0x00F0) >> 4;
+                        if self.v[vx as usize] > self.v[vy as usize] {
+                            self.v[0xF] = 1;
+                        } else {
+                            self.v[0xF] = 0;
+                        }
+                        self.v[vx as usize] -= self.v[vy as usize];
+                        self.pc += 2;
                     }, 
                     0x0006 => {
                         // 8XY6: Shifts VX right by one. VF is set to the value of the 
