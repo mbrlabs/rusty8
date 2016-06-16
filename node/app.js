@@ -16,7 +16,7 @@
 const electron = require('electron');
 const {app, BrowserWindow} = electron;
 
-const DEBUG = false;
+const DEBUG = true
 
 // keep global window ref
 let win;

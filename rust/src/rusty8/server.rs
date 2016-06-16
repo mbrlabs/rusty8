@@ -39,21 +39,23 @@ fn handle_request(mut stream: TcpStream) {
 
     // read rom size
     let mut rom_size: usize = ((buf[0] as u16) << 8 | buf[1] as u16) as usize;
-    
+    println!("Rom size sent form client: {}", rom_size);
     // read rom
     let mut rom: Vec<u8> = Vec::new();
-    let mut buf: [u8; 64] = [0; 64];
+    let mut buf: [u8; 1024] = [0; 1024];
     while rom_size > 0 {
         bytes_read = stream.read(&mut buf).unwrap();
         if bytes_read <= rom_size {
             rom_size -= bytes_read;
-            rom.extend_from_slice(&buf); // TODO may not work
+            rom.extend_from_slice(&buf[0..bytes_read]); // TODO may not work
         } else {
             println!("Rom size exeeds then described size in header");
             drop(stream);
             return;
         }
     } 
+
+    println!("Received rom with {} bytes.", rom.len());
 
     // create process and start emulating
     let remote = RemoteFrontend::new(stream);

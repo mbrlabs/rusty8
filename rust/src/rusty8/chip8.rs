@@ -123,7 +123,7 @@ impl Chip8 {
     pub fn tick(&mut self) {
         // fetch
         let opcode: u16 = (self.mem[self.pc] as u16) << 8 | (self.mem[self.pc + 1] as u16);
-        //println!("pc: {}, opcode: {:x}", self.pc, opcode);
+        println!("pc: {}, opcode: {:x}", self.pc, opcode);
 
         // decode && execute
         // Opcode list: https://en.wikipedia.org/wiki/CHIP-8#Opcode_table

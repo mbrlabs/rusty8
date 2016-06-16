@@ -22,6 +22,7 @@ $(function() {
     const {Renderer} = require('../js/renderer');
     const {Rusty8Client} = require('../js/client');
     const {dialog} = require('electron').remote;
+    const fs = require('fs');
 
     // ==================================================================================
     //                                  Modals
@@ -44,7 +45,7 @@ $(function() {
     // ==================================================================================
 
     var client = null;
-    function connect(host, port) {
+    function connect(host, port, romBuffer) {
         // build client
         client = new Rusty8Client({
             host:           SERVER_HOST,
@@ -53,10 +54,10 @@ $(function() {
                 console.log('Rendering...');
             },
             onEnd:          function() {
-                connectionErrorModal(true);
+                //connectionErrorModal(true);
             },
             onError:        function() {
-                connectionErrorModal(true);
+                //connectionErrorModal(true);
             },
         });
 
@@ -65,6 +66,14 @@ $(function() {
             if(success) {
                 console.log('Connected to server');
                 connectionErrorModal(false);
+
+                var len = romBuffer.length;
+                var buf = new Buffer.alloc(2);
+                buf.writeUInt16BE(len, 0);
+
+                // send rom
+                client.conn.write(buf);
+                client.conn.write(romBuffer);
             } else {
                 connectionErrorModal(true);
             }
@@ -74,10 +83,15 @@ $(function() {
     // ==================================================================================
     //                              UI stuff
     // ==================================================================================
+        
 
     // load rom
     $('#load-rom').click(() => {
         dialog.showOpenDialog({properties: ['openFile']}, (file) => {
+            var romData = fs.readFileSync(file[0]);
+            var len = romData.length;
+            console.log("Loaded rom " + file[0] + " => " + len + " bytes");
+            connect(SERVER_HOST, SERVER_PORT, romData);
             alert(file);
         });
     });
@@ -90,7 +104,7 @@ $(function() {
     // ==================================================================================
     //                                  Main
     // ==================================================================================
-    connect(SERVER_HOST, SERVER_PORT);
+    //connect(SERVER_HOST, SERVER_PORT);
 
 
 });
