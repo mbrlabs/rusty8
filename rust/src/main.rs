@@ -42,7 +42,7 @@ fn standalone_mode(path_to_rom: &String) {
     let rom: Vec<u8> = utils::read_file(path_to_rom).unwrap();
     println!("Rom loaded: {} bytes", rom.len());
     
-    let term = TermFrontend::new();
+    let mut term = TermFrontend::new();
     term.clear();
 	let mut process = Process::new(term);
 	process.run(rom);

@@ -37,7 +37,7 @@ Rusty8Client.prototype.connect = function(onConnected) {
 
 	// receive data
 	this.conn.on('data', (data) => {
-        console.log(data.toString());
+        this.onRenderCmd(data);
 	});
 
     // connection end

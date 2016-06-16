@@ -14,12 +14,13 @@
 // along with rusty8. If not, see <http://www.gnu.org/licenses/>.
 
 use std::net::TcpStream;
+use std::io::{Read, Write};
 use rusty8::chip8::Chip8;
 
 pub trait Frontend {
-    fn clear(&self);
-    fn render(&self, chip: &Chip8);
-    fn do_input(&self, chip: &mut Chip8);
+    fn clear(&mut self);
+    fn render(&mut self, chip: &Chip8);
+    fn do_input(&mut self, chip: &mut Chip8);
 } 
 
 pub struct TermFrontend {
@@ -33,40 +34,58 @@ impl TermFrontend {
 }
 
 impl Frontend for TermFrontend {
-    fn clear(&self) {
+    fn clear(&mut self) {
         println!("\x1b[2J\x1b[H");
     }
 
-    fn render(&self, chip: &Chip8) {
-        
+    fn render(&mut self, chip: &Chip8) { 
     }
 
-    fn do_input(&self, chip: &mut Chip8) {
+    fn do_input(&mut self, chip: &mut Chip8) {
 
     }
 }
 
 pub struct RemoteFrontend {
     stream: TcpStream,
+    keys:   [bool; 16],
 }
 
 impl RemoteFrontend {
     pub fn new(stream: TcpStream) -> RemoteFrontend {
-        return RemoteFrontend{stream: stream};
+        return RemoteFrontend{stream: stream, keys: [false; 16]};
     }
 }
 
 impl Frontend for RemoteFrontend {
-    fn clear(&self) {
-
+    fn clear(&mut self) {
+        let _ = self.stream.write(&[0]);
     }
 
-    fn render(&self, chip: &Chip8) {
-
+    fn render(&mut self, chip: &Chip8) {
+        let mut buf: [u8; 2048] = [0; 2048];
+        for i in 0..buf.len() {
+            if chip.vram[i] {
+                buf[i] = 1;
+            }
+        } 
+        let written = self.stream.write(&buf).unwrap();
     }
     
-    fn do_input(&self, chip: &mut Chip8) {
+    fn do_input(&mut self, chip: &mut Chip8) {
+        let mut buf: [u8; 16] = [0; 16];
+        let bytes_read = self.stream.read(&mut buf).unwrap();
+        let slice = &buf[0..bytes_read];
 
+        let mut i = 0;
+        for i in 0..slice.len() {
+            self.keys[i as usize] = slice[i] >= 1;
+            if slice[i] >= 1 {
+                println!("Key pressed: {}", i);
+            }
+        }
+
+        chip.set_keys(self.keys);
     }
 }
 

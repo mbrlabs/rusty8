@@ -48,7 +48,7 @@ pub struct Chip8 {
     /// 0x000-0x1FF - Chip 8 interpreter. Just leave this empty..
     /// 0x050-0x0A0 - Used for the built in 4x5 pixel font set (0-F)
     /// 0x200-0xFFF - Program ROM and work RAM
-    pub mem:        [u8; MEMORY_SIZE],     
+    mem:        [u8; MEMORY_SIZE],     
     /// 16 registers. 0-14 general purpose. 
     /// 15th register: carry flag, set if sprite is set from 1 to 0 (collision detection)
     v:          [u8; REGISTER_COUNT],
@@ -61,15 +61,13 @@ pub struct Chip8 {
     /// Sound timer. Decrements at 60hz if set to a value > 0. As long as > 0, chip-8 will beep.
     sound:      u8,
     /// Stores state of key; if true => pressed
-    keys:       [bool; 16],
+    pub keys:       [bool; 16],
     /// Stores sprites, drawn by DXYN
-    gfx:        [u8; 64*32],
+    pub vram:        [bool; 64*32],
     /// Stack, used for jump instructions & subroutines
     stack:      Stack,
     /// Set to true if screen must be updated
     draw_flag:  bool,
-    /// Set to true if the screen needs to be cleared
-    clear_flag:  bool,
     /// Set to the key value that has been pressed during the last tick.
     /// If >= 16, no key has been pressed in the last tick.
     last_tick_pressed: u8,
@@ -81,8 +79,8 @@ impl Chip8 {
         let mut chip = Chip8 {
             mem: [0; MEMORY_SIZE], v: [0; REGISTER_COUNT],
             i: 0, pc: 0x200, delay: 0, sound: 0, keys: [false; 16],
-            stack: Stack::new(), draw_flag: false, clear_flag: false,
-            last_tick_pressed: 255, gfx: [0; 64*32],
+            stack: Stack::new(), draw_flag: false, 
+            last_tick_pressed: 255, vram: [false; 64*32],
         };
 
         // load font
@@ -123,7 +121,19 @@ impl Chip8 {
     pub fn tick(&mut self) {
         // fetch
         let opcode: u16 = (self.mem[self.pc] as u16) << 8 | (self.mem[self.pc + 1] as u16);
-        println!("pc: {}, opcode: {:x}", self.pc, opcode);
+        //println!("pc: {}, opcode: {:x}", self.pc, opcode);
+
+
+        // ===========================================================0
+/*        println!("\n\n==================================== Pc: {}, opc: {:x}", self.pc, opcode);
+        // registers
+        print!("# Registers: ");
+        for i in 0..16 {
+            print!("{}: {}, " ,i, self.v[i]);    
+        }
+        print!("\nI: {}", self.i);*/
+        // ===========================================================0
+
 
         // decode && execute
         // Opcode list: https://en.wikipedia.org/wiki/CHIP-8#Opcode_table
@@ -132,12 +142,16 @@ impl Chip8 {
                 match opcode {
                     0x00E0 => {
                         // 00E0: Clears the screen
-                        self.clear_flag = true;
+                        self.draw_flag = true;
+                        for i in 0..self.vram.len() {
+                            self.vram[i] = false;
+                        }
                         self.pc += 2;
                     },
                     0x00EE => {
                         // 00EE: Returns from a subroutine
                         self.pc = self.stack.pop();
+                        self.pc += 2;
                     },
                     _      => {
                         // 0x0NNN: Calls RCA 1802 program at address NNN. 
@@ -147,7 +161,7 @@ impl Chip8 {
                 }
             },
             0x1000 => {
-                // 1NNN: Jumps to address NNN
+                // 1NNN: Jumps to address 
                 self.pc = (opcode & 0x0FFF) as usize;
             },
             0x2000 => {
@@ -159,6 +173,7 @@ impl Chip8 {
                 // 3XNN: Skips the next instruction if VX equals NN
                 let vx = (opcode & 0x0F00) >> 8;
                 let nn = (opcode & 0x00FF) as u8;
+                //println!("pc: {}, vx: {}, nn: {} ", self.pc, self.v[vx as usize], nn);
                 if self.v[vx as usize] == nn {
                     self.pc += 4;
                 } else {
@@ -187,43 +202,46 @@ impl Chip8 {
             },
             0x6000 => {
                 // 6XNN: Sets VX to NN
-                let register = (opcode & 0x0F00) >> 8;
-                self.v[register as usize] = (opcode & 0x00FF) as u8;
+                let vx = (opcode & 0x0F00) >> 8;
+                self.v[vx as usize] = (opcode & 0x00FF) as u8;
                 self.pc += 2;
             },
             0x7000 => {
                 // 7XNN: Adds NN to VX
-                let register = (opcode & 0x0F00) >> 8;
-                self.v[register as usize] += (opcode & 0x00FF) as u8;;
+                let vx = (opcode & 0x0F00) >> 8;
+                let nn = (opcode & 0x00FF) as u8;
+                //print!("{} + {}", self.v[vx as usize], nn);
+                self.v[vx as usize] = self.v[vx as usize].wrapping_add(nn); // .wrapping_add allows overflows
+                //println!(" = {} ", self.v[vx as usize]);
                 self.pc += 2;
             },
             0x8000 => {
                 match opcode & 0x000F {
                     0x0000 => {
                         // 8XY0: Sets VX to the value of VY
-                        let vx = opcode & 0x0F00 >> 8;
-                        let vy = opcode & 0x00F0 >> 4;
+                        let vx = (opcode & 0x0F00) >> 8;
+                        let vy = (opcode & 0x00F0) >> 4;
                         self.v[vx as usize] = self.v[vy as usize];
                         self.pc += 2;
                     },
                     0x0001 => {
                         // 8XY1: Sets VX to VX or VY
-                        let vx = opcode & 0x0F00 >> 8;
-                        let vy = opcode & 0x00F0 >> 4;
+                        let vx = (opcode & 0x0F00) >> 8;
+                        let vy = (opcode & 0x00F0) >> 4;
                         self.v[vx as usize] |= self.v[vy as usize];
                         self.pc += 2;
                     }, 
                     0x0002 => {
                         // 8XY2: Sets VX to VX and VY
-                        let vx = opcode & 0x0F00 >> 8;
-                        let vy = opcode & 0x00F0 >> 4;
+                        let vx = (opcode & 0x0F00) >> 8;
+                        let vy = (opcode & 0x00F0) >> 4;
                         self.v[vx as usize] &= self.v[vy as usize];
                         self.pc += 2;
                     }, 
                     0x0003 => {
                         // 8XY3: Sets VX to VX xor VY
-                        let vx = opcode & 0x0F00 >> 8;
-                        let vy = opcode & 0x00F0 >> 4;
+                        let vx = (opcode & 0x0F00) >> 8;
+                        let vy = (opcode & 0x00F0) >> 4;
                         self.v[vx as usize] ^= self.v[vy as usize];
                         self.pc += 2;
                     }, 
@@ -237,7 +255,7 @@ impl Chip8 {
                             true => 1,
                             false => 0,
                         };
-                        self.v[vx as usize] += self.v[vy as usize];
+                        self.v[vx as usize] = self.v[vx as usize].wrapping_add(self.v[vy as usize]);
                         self.pc += 2;
                     },
                     0x0005 => {
@@ -250,14 +268,14 @@ impl Chip8 {
                         } else {
                             self.v[0xF] = 0;
                         }
-                        self.v[vx] -= self.v[vy];
+                        self.v[vx] = self.v[vx].wrapping_sub(self.v[vy]);
                         self.pc += 2;
                     }, 
                     0x0006 => {
                         // 8XY6: Shifts VX right by one. VF is set to the value of the 
                         // least significant bit of VX before the shift
                         let vx = (opcode & 0x0F00) as usize;
-                        self.v[0xF] = (self.v[vx] & 0x0F) >> 3;
+                        self.v[0xF] = self.v[vx] & 0b00000001;
                         self.v[vx] = self.v[vx] >> 1;
                         self.pc += 2;
                     }, 
@@ -278,7 +296,7 @@ impl Chip8 {
                         // 8XYE: Shifts VX left by one. VF is set to the value of the 
                         // most significant bit of VX before the shift
                         let vx = (opcode & 0x0F00) as usize;
-                        self.v[0xF] = (self.v[vx] & 0xF0) >> 7;
+                        self.v[0xF] = self.v[vx] & 0b10000000;
                         self.v[vx] = self.v[vx] << 1;
                         self.pc += 2;
                     }, 
@@ -303,14 +321,16 @@ impl Chip8 {
             },
             0xB000 => {
                 // BNNN: Jumps to the address NNN plus V0
-                self.pc = ((self.v[0] as u16) + (opcode & 0x0FFF)) as usize;
+                let nnn = (opcode & 0x0FFF) as usize; 
+                self.pc = (self.v[0] as usize) + nnn;
             },
             0xC000 => {
                 // CXNN: Sets VX to the result of a bitwise and operation on a 
                 // random number and NN
-                let register = (opcode & 0x0F00) >> 8;
-                let num = rand::random::<u8>() & (opcode & 0x00FF) as u8;
-                self.v[register as usize] = num;
+                let vx = (opcode & 0x0F00) >> 8;
+                let nn = (opcode & 0x00FF) as u8;
+                let num = rand::random::<u8>() & nn;
+                self.v[vx as usize] = num;
                 self.pc += 2;
             },
             0xD000 => {
@@ -320,34 +340,53 @@ impl Chip8 {
                 // (i.e. it toggles the screen pixels). Sprites are drawn starting at position VX, VY. 
                 // N is the number of 8bit rows that need to be drawn. If N is greater than 1, second 
                 // line continues at position VX, VY+1, and so on
-                let x = ((opcode & 0x0F00) >> 8) as usize;
-                let y = ((opcode & 0x00F0) >> 4) as usize;
-                let height = (opcode & 0x000F) as usize;
-                let mut pixel: u8 = 0;
-
-                self.v[0xF] = 0;
-                for x_line in 0..height {
-                    pixel = self.mem[(self.i as usize) + x_line];
-                    for y_line in 0..8 {
-                        if (pixel & (0x80 >> x_line)) != 0 {
-                            // "collision" check
-                            if self.gfx[(x + x_line + ((y + y_line) * 64))] == 1 {
-                                self.v[0xF] = 1;
+                let gfx_start_x = self.v[(opcode as usize & 0x0f00) >> 8] as usize;
+                let gfx_start_y = self.v[(opcode as usize & 0x00f0) >> 4] as usize;
+                let n = (opcode & 0x000f) as usize; 
+                let sprt_w = 64;
+                let sprt_h = 32;
+                let sprt_bytes_per_row = sprt_w / 8; 
+                self.v[0x0f] = 0x00;
+                for y_offset in 0..sprt_h {
+                    for sprt_byte_col_idx in 0..sprt_bytes_per_row {
+                        let sprt_byte_ram_idx = self.i as usize + 
+                            y_offset * sprt_bytes_per_row;
+                        let sprt_byte: u8 = self.mem[sprt_byte_ram_idx]; 
+                        for sprt_byte_bit_idx in 0..8 as usize {
+                            let x_offset = sprt_byte_col_idx * 8 + sprt_byte_bit_idx;
+                            // Drawing beyond max width and height will wrap.
+                            let gfx_x = (gfx_start_x + x_offset) % 64;
+                            let gfx_y = (gfx_start_y + y_offset) % 32; 
+                            // Mask to obtain single bit from byte. 
+                            let mask = 0b_1000_0000_u8 >> sprt_byte_bit_idx; 
+                            let sprt_pix = sprt_byte & mask != 0;
+                            if sprt_pix == true {
+                                let gfx_pix = &mut self.vram[gfx_x + gfx_y*64];
+                                *gfx_pix ^= true;
+                                if *gfx_pix == true {
+                                    // Reduce flicker and draw only when pix switched on. 
+                                    self.draw_flag = true;
+                                } else {
+                                    self.v[0x0f] = 0x01;
+                                } 
                             }
-                            // draw
-                            self.gfx[x + x_line + ((y + y_line) * 64)] ^= 1;
                         }
-                    }
+                    } 
                 }
-                self.draw_flag = true;
                 self.pc += 2;
+
+                for i in 0..2048 {
+                    println!("{}", self.vram[i]);
+                }
             },
             0xE000 => {
                 match opcode & 0x00FF {
                     0x009E => {
                         // EX9E: Skips the next instruction if the key stored in VX is pressed
                         let vx = (opcode & 0x0F00) >> 8;
-                        if vx <= 0xF && self.keys[vx as usize] {
+                        let key = self.v[vx as usize];
+
+                        if vx <= 0xF && self.keys[key as usize] {
                             self.pc += 4;
                         } else {
                             self.pc += 2;
@@ -356,7 +395,9 @@ impl Chip8 {
                     0x00A1 => {
                         // EXA1: Skips the next instruction if the key stored in VX isn't pressed
                         let vx = (opcode & 0x0F00) >> 8;
-                        if vx <= 0xF && self.keys[vx as usize] {
+                        let key = self.v[vx as usize];
+                        
+                        if vx <= 0xF && self.keys[key as usize] {
                             self.pc += 2;
                         } else {
                             self.pc += 4;
@@ -402,7 +443,6 @@ impl Chip8 {
                     0x0029 => {
                         // FX29: Sets I to the location of the sprite for the character in VX. 
                         // Characters 0-F (in hexadecimal) are represented by a 4x5 font
-                        // TODO implement
                         let vx = ((opcode & 0x0F00) >> 8) as usize;
                         self.i = (self.v[vx] as u16) * 5;
                         self.pc += 2;
@@ -454,10 +494,6 @@ impl Chip8 {
 
     pub fn draw_requested(&self) -> bool {
         return self.draw_flag;
-    }
-
-    pub fn clear_requested(&self) -> bool {
-        return self.clear_flag;
     }
 
     pub fn set_keys(&mut self, keys: [bool; 16]) {

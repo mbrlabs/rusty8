@@ -25,7 +25,6 @@ pub struct Chip8Server {
     port: u16,
 }
 
-// TODO this is NOT tested and will fail to 99.999% ;)
 fn handle_request(mut stream: TcpStream) {
     println!("New client connected. Reading rom...");
     let mut buf: [u8; 2] = [0; 2];
@@ -47,7 +46,7 @@ fn handle_request(mut stream: TcpStream) {
         bytes_read = stream.read(&mut buf).unwrap();
         if bytes_read <= rom_size {
             rom_size -= bytes_read;
-            rom.extend_from_slice(&buf[0..bytes_read]); // TODO may not work
+            rom.extend_from_slice(&buf[0..bytes_read]);
         } else {
             println!("Rom size exeeds then described size in header");
             drop(stream);
