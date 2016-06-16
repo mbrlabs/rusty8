@@ -66,6 +66,8 @@ pub struct Chip8 {
     stack:      Stack,
     /// Set to true if screen must be updated
     draw_flag:  bool,
+    /// Set to true if the screen needs to be cleared
+    clear_flag:  bool,
 }
 
 impl Chip8 {
@@ -74,7 +76,7 @@ impl Chip8 {
         let mut chip = Chip8 {
             mem: [0; MEMORY_SIZE], v: [0; REGISTER_COUNT],
             i: 0, pc: 0x200, delay: 0, sound: 0, keys: [false; 16],
-            stack: Stack::new(), draw_flag: false,
+            stack: Stack::new(), draw_flag: false, clear_flag: false,
         };
 
         // load font
@@ -123,7 +125,8 @@ impl Chip8 {
                 match opcode {
                     0x00E0 => {
                         // 00E0: Clears the screen
-                        // TODO implement
+                        self.clear_flag = true;
+                        self.pc += 2;
                     },
                     0x00EE => {
                         // 00EE: Returns from a subroutine
@@ -146,15 +149,33 @@ impl Chip8 {
             },
             0x3 => {
                 // 3XNN: Skips the next instruction if VX equals NN
-                // TODO implement
+                let vx = (opcode & 0x0F00) >> 8;
+                let nn = (opcode & 0x00FF) as u8;
+                if self.v[vx as usize] == nn {
+                    self.pc += 4;
+                } else {
+                    self.pc += 2;
+                }
             },
             0x4 => {
                 // 4XNN: Skips the next instruction if VX doesn't equal NN
-                // TODO implement
+                let vx = (opcode & 0x0F00) >> 8;
+                let nn = (opcode & 0x00FF) as u8;
+                if self.v[vx as usize] != nn {
+                    self.pc += 4;
+                } else {
+                    self.pc += 2;
+                }
             },
             0x5 => {
                 // 5XY0: Skips the next instruction if VX equals VY
-                // TODO implement
+                let vx = (opcode & 0x0F00) >> 8;
+                let vy = (opcode & 0x00F0) >> 4;
+                if self.v[vx as usize] == self.v[vy as usize] {
+                    self.pc += 4;
+                } else {
+                    self.pc += 2;
+                }
             },
             0x6 => {
                 // 6XNN: Sets VX to NN
@@ -290,15 +311,21 @@ impl Chip8 {
                     }, 
                     0x0015 => {
                         // FX15: Sets the delay timer to VX
-                        // TODO implement
+                        let vx = (opcode & 0x0F00) >> 8;
+                        self.delay = self.v[vx as usize];
+                        self.pc += 2;
                     },
                     0x0018 => {
                         // FX18: Sets the sound timer to VX
-                        // TODO implement
+                        let vx = (opcode & 0x0F00) >> 8;
+                        self.sound = self.v[vx as usize];
+                        self.pc += 2;
                     },
                     0x001E => {
                         // FX1E: Adds VX to I
-                        // TODO implement
+                        let vx = (opcode & 0x0F00) >> 8;
+                        self.i += self.v[vx as usize];
+                        self.pc += 2;
                     },
                     0x0029 => {
                         // FX29: Sets I to the location of the sprite for the character in VX. 
@@ -334,4 +361,9 @@ impl Chip8 {
     pub fn draw_requested(&self) -> bool {
         return self.draw_flag;
     }
+
+    pub fn clear_requested(&self) -> bool {
+        return self.clear_flag;
+    }
+
 }

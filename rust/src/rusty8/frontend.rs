@@ -34,11 +34,11 @@ impl TermFrontend {
 
 impl Frontend for TermFrontend {
     fn clear(&self) {
-
+        println!("\x1b[2J\x1b[H");
     }
 
     fn render(&self, chip: &Chip8) {
-
+        
     }
 
     fn do_input(&self, chip: &mut Chip8) {

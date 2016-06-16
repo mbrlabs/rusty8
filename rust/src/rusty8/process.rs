@@ -46,6 +46,11 @@ impl<T: Frontend> Process<T> {
         while self.is_running() {
             self.frontend.do_input(&mut self.chip8);
             self.chip8.tick();
+            
+            if self.chip8.clear_requested() {
+                self.frontend.clear();
+            }
+
             if self.chip8.draw_requested() {
                 self.frontend.render(&self.chip8);
             }            
