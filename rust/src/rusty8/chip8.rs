@@ -121,12 +121,9 @@ impl Chip8 {
     }
 
     pub fn tick(&mut self) {
-        
         // fetch
         let opcode: u16 = (self.mem[self.pc] as u16) << 8 | (self.mem[self.pc + 1] as u16);
-        println!("pc: {}", self.pc);
-        println!("oc: {:x}", opcode);
-
+        //println!("pc: {}, opcode: {:x}", self.pc, opcode);
 
         // decode && execute
         // Opcode list: https://en.wikipedia.org/wiki/CHIP-8#Opcode_table
@@ -446,7 +443,13 @@ impl Chip8 {
             _   => {/* Unsupported opcode */},
         }
 
-        // TODO update timer registers
+        // Decrement timer registers
+        if self.delay >= 1 {
+            self.delay -= 1;
+        }
+        if self.sound >= 1 {
+            self.sound -= 1;
+        }
     }
 
     pub fn draw_requested(&self) -> bool {

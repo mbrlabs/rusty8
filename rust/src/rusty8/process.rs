@@ -37,7 +37,7 @@ impl<T: Frontend> Process<T> {
             frontend:   frontend,
             chip8:      Chip8::new(),
             running:    false,
-            clock: Duration::from_millis(1000/60),
+            clock:      Duration::from_millis(1000/60),
         };
 
         return process;
@@ -53,13 +53,13 @@ impl<T: Frontend> Process<T> {
             self.frontend.do_input(&mut self.chip8);
             self.chip8.tick();
             
+            // clear & draw
             if self.chip8.clear_requested() {
                 self.frontend.clear();
             }
-
             if self.chip8.draw_requested() {
                 self.frontend.render(&self.chip8);
-            }    
+            }   
 
             // emulate cpu clock
             thread::sleep(self.clock);
