@@ -20,7 +20,7 @@ use std::fs::File;
 const SIZE: usize = 16;
 
 pub struct Stack {
-    data: [u16; 16],
+    data: [usize; 16],
     ptr:  usize,
 }
 
@@ -30,7 +30,7 @@ impl Stack {
         return Stack{data: [0; SIZE], ptr: 0};
     }
 
-    pub fn push(&mut self, n: u16) {
+    pub fn push(&mut self, n: usize) {
         if self.ptr == SIZE - 1 { 
             panic!("Stack overflow!"); 
         }
@@ -38,7 +38,7 @@ impl Stack {
         self.data[self.ptr] = n;
     }
 
-    pub fn pop(&mut self) -> u16 {
+    pub fn pop(&mut self) -> usize {
         if self.ptr == 0 { 
             panic!("Stack underflow!"); 
         }
@@ -46,7 +46,7 @@ impl Stack {
         return self.data[self.ptr + 1];
     }
 
-    pub fn peek(&self) -> u16 {
+    pub fn peek(&self) -> usize {
         return self.data[self.ptr];
     }
 

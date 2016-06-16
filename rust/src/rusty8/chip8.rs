@@ -235,30 +235,44 @@ impl Chip8 {
                     0x0005 => {
                         // 8XY5: VY is subtracted from VX. VF is set to 0 when there's 
                         // a borrow, and 1 when there isn't
-                        let vx = (opcode & 0x0F00) >> 8;
-                        let vy = (opcode & 0x00F0) >> 4;
-                        if self.v[vx as usize] > self.v[vy as usize] {
+                        let vx = ((opcode & 0x0F00) >> 8) as usize;
+                        let vy = ((opcode & 0x00F0) >> 4) as usize;
+                        if self.v[vx] > self.v[vy] {
                             self.v[0xF] = 1;
                         } else {
                             self.v[0xF] = 0;
                         }
-                        self.v[vx as usize] -= self.v[vy as usize];
+                        self.v[vx] -= self.v[vy];
                         self.pc += 2;
                     }, 
                     0x0006 => {
                         // 8XY6: Shifts VX right by one. VF is set to the value of the 
                         // least significant bit of VX before the shift
-                        // TODO implement
+                        let vx = (opcode & 0x0F00) as usize;
+                        self.v[0xF] = (self.v[vx] & 0x000F) >> 3;
+                        self.v[vx] = self.v[vx] >> 1;
+                        self.pc += 2;
                     }, 
                     0x0007 => {
                         // 8XY7: Sets VX to VY minus VX. VF is set to 0 when there's a 
                         // borrow, and 1 when there isn't
-                        // TODO implement
+                        let vx = ((opcode & 0x0F00) >> 8) as usize;
+                        let vy = ((opcode & 0x00F0) >> 4) as usize;
+                        if self.v[vy] > self.v[vx] {
+                            self.v[0xF] = 1;
+                        } else {
+                            self.v[0xF] = 0;
+                        }
+                        self.v[vx] = self.v[vy] - self.v[vx];
+                        self.pc += 2;
                     }, 
                     0x000E => {
                         // 8XYE: Shifts VX left by one. VF is set to the value of the 
                         // most significant bit of VX before the shift
-                        // TODO implement
+                        let vx = (opcode & 0x0F00) as usize;
+                        self.v[0xF] = (self.v[vx] & 0xF0) >> 7;
+                        self.v[vx] = self.v[vx] << 1;
+                        self.pc += 2;
                     }, 
                     _      => {/* Unsupported opcode */}
                 }
@@ -281,7 +295,7 @@ impl Chip8 {
             },
             0xB => {
                 // BNNN: Jumps to the address NNN plus V0
-                // TODO implement
+                self.pc = ((self.v[0] as u16) + (opcode & 0x0FFF)) as usize;
             },
             0xC => {
                 // CXNN: Sets VX to the result of a bitwise and operation on a 
@@ -340,7 +354,7 @@ impl Chip8 {
                     0x001E => {
                         // FX1E: Adds VX to I
                         let vx = (opcode & 0x0F00) >> 8;
-                        self.i += self.v[vx as usize];
+                        self.i += self.v[vx as usize] as u16;
                         self.pc += 2;
                     },
                     0x0029 => {
@@ -355,15 +369,28 @@ impl Chip8 {
                         // (In other words, take the decimal representation of VX, place the hundreds 
                         // digit in memory at location in I, the tens digit at location I+1, and the 
                         // ones digit at location I+2.)
-                        // TODO implement
+                        let vx = ((opcode & 0x0F00) >> 8) as usize;
+                        let i = self.i as usize;
+                        self.mem[i] = (self.v[vx] / 100) as u8;
+                        self.mem[i + 1] = ((self.v[vx] / 10) % 10) as u8;
+                        self.mem[i + 2] = ((self.v[vx] % 100) % 10) as u8;
+                        self.pc += 2;
                     },
                     0x0055 => {
                         // FX55: Stores V0 to VX (including VX) in memory starting at address I
-                        // TODO implement
+                        let vx = ((opcode & 0x0F00) >> 8) as usize;
+                        for i in 0..vx+1 { // TODO including???
+                            self.mem[(self.i + i as u16) as usize] = self.v[i];
+                        }
+                        self.pc += 2;
                     },
                     0x0065 => {
                         // FX65: Fills V0 to VX (including VX) with values from memory starting at address I
-                        // TODO implement
+                        let vx = ((opcode & 0x0F00) >> 8) as usize;
+                        for i in 0..vx+1 { // TODO including???
+                            self.v[i] = self.mem[(self.i + i as u16) as usize];
+                        }
+                        self.pc += 2;
                     },
                     _      => {/* Unsupported opcode */}
                 }
