@@ -340,44 +340,30 @@ impl Chip8 {
                 // (i.e. it toggles the screen pixels). Sprites are drawn starting at position VX, VY. 
                 // N is the number of 8bit rows that need to be drawn. If N is greater than 1, second 
                 // line continues at position VX, VY+1, and so on
-                let gfx_start_x = self.v[(opcode as usize & 0x0f00) >> 8] as usize;
-                let gfx_start_y = self.v[(opcode as usize & 0x00f0) >> 4] as usize;
-                let n = (opcode & 0x000f) as usize; 
-                let sprt_w = 64;
-                let sprt_h = 32;
-                let sprt_bytes_per_row = sprt_w / 8; 
-                self.v[0x0f] = 0x00;
-                for y_offset in 0..sprt_h {
-                    for sprt_byte_col_idx in 0..sprt_bytes_per_row {
-                        let sprt_byte_ram_idx = self.i as usize + 
-                            y_offset * sprt_bytes_per_row;
-                        let sprt_byte: u8 = self.mem[sprt_byte_ram_idx]; 
-                        for sprt_byte_bit_idx in 0..8 as usize {
-                            let x_offset = sprt_byte_col_idx * 8 + sprt_byte_bit_idx;
-                            // Drawing beyond max width and height will wrap.
-                            let gfx_x = (gfx_start_x + x_offset) % 64;
-                            let gfx_y = (gfx_start_y + y_offset) % 32; 
-                            // Mask to obtain single bit from byte. 
-                            let mask = 0b_1000_0000_u8 >> sprt_byte_bit_idx; 
-                            let sprt_pix = sprt_byte & mask != 0;
-                            if sprt_pix == true {
-                                let gfx_pix = &mut self.vram[gfx_x + gfx_y*64];
-                                *gfx_pix ^= true;
-                                if *gfx_pix == true {
-                                    // Reduce flicker and draw only when pix switched on. 
-                                    self.draw_flag = true;
-                                } else {
-                                    self.v[0x0f] = 0x01;
-                                } 
-                            }
-                        }
-                    } 
-                }
-                self.pc += 2;
+                let x = self.v[((opcode & 0x0F00) >> 8) as usize] as usize;
+                let y = self.v[((opcode & 0x00F0) >> 4) as usize] as usize ;
+                let height = (opcode & 0x000F) as usize;
+                let mut pixel: u8 = 0;
 
+                self.v[0xF] = 0;
+                for yline in 0..height {
+                    pixel = self.mem[(self.i as usize) + yline];
+                    for xline in 0..8 {
+                        if (pixel & (0x80 >> xline)) != 0 {
+                            if self.vram[(x + xline + ((y + yline) * 64))] {
+                                self.v[0xF] = 1;                                 
+                            }
+                            self.vram[(x + xline + ((y + yline) * 64))] ^= true;
+                        }
+                    }
+                }
+
+                self.pc += 2;
+                self.draw_flag = true;
+/*
                 for i in 0..2048 {
                     println!("{}", self.vram[i]);
-                }
+                }*/
             },
             0xE000 => {
                 match opcode & 0x00FF {

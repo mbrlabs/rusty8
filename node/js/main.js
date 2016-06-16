@@ -62,7 +62,7 @@ $(function() {
             host:           SERVER_HOST,
             port:           SERVER_PORT,
             onRenderCmd:    function(data) {
-                //console.log('Rendering... ' + data.length);
+                console.log('Rendering... ' + data.length);
                 if (canvas.getContext) {
                     var ctx = canvas.getContext("2d");
                     ctx.fillStyle = "rgb(255,255,255)";
