@@ -2,6 +2,8 @@
 name = "rusty8"
 version = "0.1.0"
 authors = ["Marcus Brummer <mbrlabs7@gmail.com>"]
+keywords = ["chip8"]
 
 [dependencies]
 rand = "0.3.14"
+sdl2 = "0.20.1"

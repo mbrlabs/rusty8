@@ -48,7 +48,9 @@ pub struct Chip8 {
     /// 0x000-0x1FF - Chip 8 interpreter. Just leave this empty..
     /// 0x050-0x0A0 - Used for the built in 4x5 pixel font set (0-F)
     /// 0x200-0xFFF - Program ROM and work RAM
-    mem:        [u8; MEMORY_SIZE],     
+    ram:        [u8; MEMORY_SIZE],     
+    /// Stores sprites, drawn by DXYN
+    pub vram:        [u8; 64*32],
     /// 16 registers. 0-14 general purpose. 
     /// 15th register: carry flag, set if sprite is set from 1 to 0 (collision detection)
     v:          [u8; REGISTER_COUNT],
@@ -62,8 +64,6 @@ pub struct Chip8 {
     sound:      u8,
     /// Stores state of key; if true => pressed
     pub keys:       [bool; 16],
-    /// Stores sprites, drawn by DXYN
-    pub vram:        [bool; 64*32],
     /// Stack, used for jump instructions & subroutines
     stack:      Stack,
     /// Set to true if screen must be updated
@@ -77,15 +77,15 @@ impl Chip8 {
     
     pub fn new() -> Chip8 {
         let mut chip = Chip8 {
-            mem: [0; MEMORY_SIZE], v: [0; REGISTER_COUNT],
+            ram: [0; MEMORY_SIZE], v: [0; REGISTER_COUNT],
             i: 0, pc: 0x200, delay: 0, sound: 0, keys: [false; 16],
             stack: Stack::new(), draw_flag: false, 
-            last_tick_pressed: 255, vram: [false; 64*32],
+            last_tick_pressed: 255, vram: [0; 64*32],
         };
 
         // load font
         for i in 0..FONT.len() {
-            chip.mem[i] = FONT[i];
+            chip.ram[i] = FONT[i];
         }
 
         return chip;
@@ -99,7 +99,7 @@ impl Chip8 {
         // According to this: http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#2.1
         // most programs start at 0x200
         for i in 0..rom.len() {
-            self.mem[0x200 + i] = rom[i];
+            self.ram[0x200 + i] = rom[i];
         }
     }
 
@@ -109,8 +109,8 @@ impl Chip8 {
         self.i = 0;
         self.delay = 0;
         self.sound = 0;
-        for i in 0..self.mem.len() {
-            self.mem[i] = 0;
+        for i in 0..self.ram.len() {
+            self.ram[i] = 0;
         }
         for i in 0..self.v.len() {
             self.v[i] = 0;
@@ -118,22 +118,20 @@ impl Chip8 {
         self.draw_flag = false;
     }
 
-    pub fn tick(&mut self) {
-        // fetch
-        let opcode: u16 = (self.mem[self.pc] as u16) << 8 | (self.mem[self.pc + 1] as u16);
+    fn debug(&self, opcode: &u8) {
         //println!("pc: {}, opcode: {:x}", self.pc, opcode);
-
-
-        // ===========================================================0
-/*        println!("\n\n==================================== Pc: {}, opc: {:x}", self.pc, opcode);
+        println!("\n\n==================================== Pc: {}, opc: {:x}", self.pc, opcode);
         // registers
         print!("# Registers: ");
         for i in 0..16 {
             print!("{}: {}, " ,i, self.v[i]);    
         }
-        print!("\nI: {}", self.i);*/
-        // ===========================================================0
+        print!("\nI: {}", self.i);
+    }
 
+    pub fn tick(&mut self) {
+        // fetch
+        let opcode: u16 = (self.ram[self.pc] as u16) << 8 | (self.ram[self.pc + 1] as u16);
 
         // decode && execute
         // Opcode list: https://en.wikipedia.org/wiki/CHIP-8#Opcode_table
@@ -144,7 +142,7 @@ impl Chip8 {
                         // 00E0: Clears the screen
                         self.draw_flag = true;
                         for i in 0..self.vram.len() {
-                            self.vram[i] = false;
+                            self.vram[i] = 0;
                         }
                         self.pc += 2;
                     },
@@ -173,7 +171,6 @@ impl Chip8 {
                 // 3XNN: Skips the next instruction if VX equals NN
                 let vx = (opcode & 0x0F00) >> 8;
                 let nn = (opcode & 0x00FF) as u8;
-                //println!("pc: {}, vx: {}, nn: {} ", self.pc, self.v[vx as usize], nn);
                 if self.v[vx as usize] == nn {
                     self.pc += 4;
                 } else {
@@ -210,9 +207,7 @@ impl Chip8 {
                 // 7XNN: Adds NN to VX
                 let vx = (opcode & 0x0F00) >> 8;
                 let nn = (opcode & 0x00FF) as u8;
-                //print!("{} + {}", self.v[vx as usize], nn);
-                self.v[vx as usize] = self.v[vx as usize].wrapping_add(nn); // .wrapping_add allows overflows
-                //println!(" = {} ", self.v[vx as usize]);
+                self.v[vx as usize] = self.v[vx as usize].wrapping_add(nn);
                 self.pc += 2;
             },
             0x8000 => {
@@ -347,23 +342,19 @@ impl Chip8 {
 
                 self.v[0xF] = 0;
                 for yline in 0..height {
-                    pixel = self.mem[(self.i as usize) + yline];
+                    pixel = self.ram[(self.i as usize) + yline];
                     for xline in 0..8 {
                         if (pixel & (0x80 >> xline)) != 0 {
-                            if self.vram[(x + xline + ((y + yline) * 64))] {
+                            if self.vram[(x + xline + ((y + yline) * 64))] == 1 {
                                 self.v[0xF] = 1;                                 
                             }
-                            self.vram[(x + xline + ((y + yline) * 64))] ^= true;
+                            self.vram[(x + xline + ((y + yline) * 64))] ^= 1;
                         }
                     }
                 }
 
-                self.pc += 2;
                 self.draw_flag = true;
-/*
-                for i in 0..2048 {
-                    println!("{}", self.vram[i]);
-                }*/
+                self.pc += 2;
             },
             0xE000 => {
                 match opcode & 0x00FF {
@@ -442,16 +433,16 @@ impl Chip8 {
                         // ones digit at location I+2.)
                         let vx = ((opcode & 0x0F00) >> 8) as usize;
                         let i = self.i as usize;
-                        self.mem[i] = (self.v[vx] / 100) as u8;
-                        self.mem[i + 1] = ((self.v[vx] / 10) % 10) as u8;
-                        self.mem[i + 2] = ((self.v[vx] % 100) % 10) as u8;
+                        self.ram[i] = (self.v[vx] / 100) as u8;
+                        self.ram[i + 1] = ((self.v[vx] / 10) % 10) as u8;
+                        self.ram[i + 2] = ((self.v[vx] % 100) % 10) as u8;
                         self.pc += 2;
                     },
                     0x0055 => {
                         // FX55: Stores V0 to VX (including VX) in memory starting at address I
                         let vx = ((opcode & 0x0F00) >> 8) as usize;
                         for i in 0..vx+1 { // TODO including???
-                            self.mem[(self.i + i as u16) as usize] = self.v[i];
+                            self.ram[(self.i + i as u16) as usize] = self.v[i];
                         }
                         self.pc += 2;
                     },
@@ -459,7 +450,7 @@ impl Chip8 {
                         // FX65: Fills V0 to VX (including VX) with values from memory starting at address I
                         let vx = ((opcode & 0x0F00) >> 8) as usize;
                         for i in 0..vx+1 { // TODO including???
-                            self.v[i] = self.mem[(self.i + i as u16) as usize];
+                            self.v[i] = self.ram[(self.i + i as u16) as usize];
                         }
                         self.pc += 2;
                     },

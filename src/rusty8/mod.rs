@@ -14,7 +14,6 @@
 // along with rusty8. If not, see <http://www.gnu.org/licenses/>.
 
 pub mod process;
-pub mod server;
 pub mod chip8;
 pub mod utils;
 pub mod frontend;

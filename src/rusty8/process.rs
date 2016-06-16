@@ -37,7 +37,7 @@ impl<T: Frontend> Process<T> {
             frontend:   frontend,
             chip8:      Chip8::new(),
             running:    false,
-            clock:      Duration::from_millis((1000.0/16.6666) as u64),
+            clock:      Duration::from_millis(10),
         };
 
         return process;

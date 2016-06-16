@@ -13,16 +13,29 @@
 // You should have received a copy of the GNU General Public License
 // along with rusty8. If not, see <http://www.gnu.org/licenses/>.
 
-var Renderer = function(canvas) {
-	this.canvas = canvas;
-};
+mod rusty8;
 
-Renderer.prototype.drawRectangle = function(x, y, width, height, color) {
-	// TODO 
-};
+use std::env;
+use rusty8::chip8::Chip8;
+use rusty8::process::Process;
+use rusty8::frontend::{SdlFrontend, Frontend};
 
-Renderer.prototype.clear = function(color) {
-	// TODO clear canvas
-};
+use rusty8::utils;
 
-module.exports.Renderer = Renderer;
+fn main() {
+	let args: Vec<String> = env::args().collect();
+	
+	// start in standalone mode & render to terminal
+	if args.len() != 2 { 
+		panic!("DUruuuuuuuuuuuuuurrrrrrrrrrrr");
+	}
+
+	let path_to_rom = &args[1];
+	println!("Loading ROM: {}", path_to_rom);
+    let rom: Vec<u8> = utils::read_file(path_to_rom).unwrap();
+    println!("Rom loaded: {} bytes", rom.len());
+    
+    let mut term = SdlFrontend::new();
+	let mut process = Process::new(term);
+	process.run(rom);
+}
