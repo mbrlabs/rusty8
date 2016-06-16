@@ -121,13 +121,17 @@ impl Chip8 {
     }
 
     pub fn tick(&mut self) {
+        
         // fetch
         let opcode: u16 = (self.mem[self.pc] as u16) << 8 | (self.mem[self.pc + 1] as u16);
+        println!("pc: {}", self.pc);
+        println!("oc: {:x}", opcode);
+
 
         // decode && execute
         // Opcode list: https://en.wikipedia.org/wiki/CHIP-8#Opcode_table
         match opcode & 0xF000 {
-            0x0 => {
+            0x0000 => {
                 match opcode {
                     0x00E0 => {
                         // 00E0: Clears the screen
@@ -141,19 +145,20 @@ impl Chip8 {
                     _      => {
                         // 0x0NNN: Calls RCA 1802 program at address NNN. 
                         // Not necessary for most ROMs
+                        println!("Opcode 0x0NNN is not supported.");
                     }
                 }
             },
-            0x1 => {
+            0x1000 => {
                 // 1NNN: Jumps to address NNN
                 self.pc = (opcode & 0x0FFF) as usize;
             },
-            0x2 => {
+            0x2000 => {
                 // 2NNN: Calls subroutine at NNN
                 self.stack.push(self.pc);
                 self.pc = (opcode & 0x0FFF) as usize;
             },
-            0x3 => {
+            0x3000 => {
                 // 3XNN: Skips the next instruction if VX equals NN
                 let vx = (opcode & 0x0F00) >> 8;
                 let nn = (opcode & 0x00FF) as u8;
@@ -163,7 +168,7 @@ impl Chip8 {
                     self.pc += 2;
                 }
             },
-            0x4 => {
+            0x4000 => {
                 // 4XNN: Skips the next instruction if VX doesn't equal NN
                 let vx = (opcode & 0x0F00) >> 8;
                 let nn = (opcode & 0x00FF) as u8;
@@ -173,7 +178,7 @@ impl Chip8 {
                     self.pc += 2;
                 }
             },
-            0x5 => {
+            0x5000 => {
                 // 5XY0: Skips the next instruction if VX equals VY
                 let vx = (opcode & 0x0F00) >> 8;
                 let vy = (opcode & 0x00F0) >> 4;
@@ -183,19 +188,19 @@ impl Chip8 {
                     self.pc += 2;
                 }
             },
-            0x6 => {
+            0x6000 => {
                 // 6XNN: Sets VX to NN
                 let register = (opcode & 0x0F00) >> 8;
                 self.v[register as usize] = (opcode & 0x00FF) as u8;
                 self.pc += 2;
             },
-            0x7 => {
+            0x7000 => {
                 // 7XNN: Adds NN to VX
                 let register = (opcode & 0x0F00) >> 8;
                 self.v[register as usize] += (opcode & 0x00FF) as u8;;
                 self.pc += 2;
             },
-            0x8 => {
+            0x8000 => {
                 match opcode & 0x000F {
                     0x0000 => {
                         // 8XY0: Sets VX to the value of VY
@@ -283,7 +288,7 @@ impl Chip8 {
                     _      => {/* Unsupported opcode */}
                 }
             },
-            0x9 => {
+            0x9000 => {
                 // 9XY0: Skips the next instruction if VX doesn't equal VY
                 // TODO implement 
                 let vx = (opcode & 0x0F00) >> 8;
@@ -294,16 +299,16 @@ impl Chip8 {
                     self.pc += 2;
                 }
             },
-            0xA => {
+            0xA000 => {
                 // ANNN: Sets I to the address NNN
                 self.i = opcode & 0x0FFF;
                 self.pc += 2;
             },
-            0xB => {
+            0xB000 => {
                 // BNNN: Jumps to the address NNN plus V0
                 self.pc = ((self.v[0] as u16) + (opcode & 0x0FFF)) as usize;
             },
-            0xC => {
+            0xC000 => {
                 // CXNN: Sets VX to the result of a bitwise and operation on a 
                 // random number and NN
                 let register = (opcode & 0x0F00) >> 8;
@@ -311,7 +316,7 @@ impl Chip8 {
                 self.v[register as usize] = num;
                 self.pc += 2;
             },
-            0xD => {
+            0xD000 => {
                 // DXYN: Sprites stored in memory at location in index register (I), 8bits 
                 // wide. Wraps around the screen. If when drawn, clears a pixel, register 
                 // VF is set to 1 otherwise it is zero. All drawing is XOR drawing 
@@ -340,7 +345,7 @@ impl Chip8 {
                 self.draw_flag = true;
                 self.pc += 2;
             },
-            0xE => {
+            0xE000 => {
                 match opcode & 0x00FF {
                     0x009E => {
                         // EX9E: Skips the next instruction if the key stored in VX is pressed
@@ -363,7 +368,7 @@ impl Chip8 {
                     _      => {/* Unsupported opcode */}
                 }
             },
-            0xF => {
+            0xF000 => {
                 match opcode & 0x00FF {
                     0x0007 => {
                         // FX07: Sets VX to the value of the delay timer
@@ -376,6 +381,7 @@ impl Chip8 {
                         if self.last_tick_pressed < 16 {
                             let vx = ((opcode & 0x0F00) >> 8) as usize;
                             self.v[vx] = self.last_tick_pressed;
+                            self.pc += 2;
                         }
                     }, 
                     0x0015 => {

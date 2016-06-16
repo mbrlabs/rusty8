@@ -16,6 +16,9 @@
 use rusty8::chip8::Chip8;
 use rusty8::frontend::Frontend;
 
+use std::time::Duration;
+use std::thread;
+
 pub struct Process<T: Frontend> {
     /// Frontend, used for rendering & input
     frontend:   T,
@@ -23,6 +26,8 @@ pub struct Process<T: Frontend> {
     chip8:  Chip8,
     /// is our process still running?
     running: bool,
+    /// Sleep time
+    clock: Duration,
 }
 
 impl<T: Frontend> Process<T> {
@@ -32,6 +37,7 @@ impl<T: Frontend> Process<T> {
             frontend:   frontend,
             chip8:      Chip8::new(),
             running:    false,
+            clock: Duration::from_millis(1000/60),
         };
 
         return process;
@@ -53,7 +59,10 @@ impl<T: Frontend> Process<T> {
 
             if self.chip8.draw_requested() {
                 self.frontend.render(&self.chip8);
-            }            
+            }    
+
+            // emulate cpu clock
+            thread::sleep(self.clock);
         }
     }
 
