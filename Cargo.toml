@@ -6,4 +6,4 @@ keywords = ["chip8"]
 
 [dependencies]
 rand = "0.3.14"
-sdl2 = "0.20.1"
+piston_window = "0.44.0"
