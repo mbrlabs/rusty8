@@ -473,7 +473,7 @@ impl Chip8 {
         return self.draw_flag;
     }
 
-    pub fn set_keys(&mut self, keys: [bool; 16]) {
+    pub fn set_keys(&mut self, keys: &[bool; 16]) {
         self.last_tick_pressed = 255; // reset key press during last tick
         for i in 0..16 {
             if !self.keys[i] && keys[i] && self.last_tick_pressed == 255 { // check for == 255 is maybe not neccessary

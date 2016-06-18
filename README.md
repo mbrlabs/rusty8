@@ -4,9 +4,9 @@ rusty8 is a chip-8 emulator written in Rust.
 
 ## About
 This project is mainly about learning how to program in Rust and to refresh my rusty knowledge of low level
-programming skills. 
-The emulator is fully functional, although some things could certainly be improved.
-I used the Piston game engine for rendering, input & sound.
+programming.
+The emulator is fully functional (except for audio), although some things could certainly be improved.
+I used the Piston game engine for rendering & input handling.
 
 In order to run this, you have to insall Rust and the package manager cargo.
 For building type `cargo build --release`. You sould find the compiled program in the targets folder.
