@@ -1,47 +1,26 @@
 # rusty8
 
-rusty8 is a chip-8 emulator.  
-The backend is written in Rust, the frontend in NodeJS/HTML/CSS.
+rusty8 is a chip-8 emulator written in Rust.  
 
-## How does it work
-The backend emulates the program, whereas the frontend is responsible for rendering and input.
-Both parts communicate over TCP.
+## About
+This project is mainly about learning how to program in Rust and to refresh my rusty knowledge of low level
+programming skills. 
+The emulator is fully functional, although some things could certainly be improved.
+I used the Piston game engine for rendering, input & sound.
 
-	+------------+       data        +-----------+
-	|            |  -------------->  |           |
-	|  Backend   |       input       | Frontend  |
-	|            |  <--------------  |           |
-	+------------+                   +-----------+
+In order to run this, you have to insall Rust and the package manager cargo.
+For building type `cargo build --release`. You sould find the compiled program in the targets folder.
 
-The backend can also be run in standalone mode by providing the path of a rom as commandline argument.
-This mode 'renders' everything to the terminal.
+Usage: `rusty8 PATH_TO_ROM_GOES_HERE`
 
-## Backend
-The emulation of the chip-8 chip & execution of the program is done in the backend, which is written in Rust.
-Rust is a great language for this job, since it is (amongst other things) super fast and supports 
-unsigned integers.
+## ROMs
+- [http://www.zophar.net/pdroms/chip8/chip-8-games-pack.html](http://www.zophar.net/pdroms/chip8/chip-8-games-pack.html)
 
-### Compiling the backend
-You will need to install the Rust programming language and the package manager cargo.
-[INSERT LINK HERE]
+## Chip8 documentation 
+- [http://mattmik.com/files/chip8/mastering/chip8.html](http://mattmik.com/files/chip8/mastering/chip8.html)
+- [http://devernay.free.fr/hacks/chip8/C8TECH10.HTM](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM)
+- [https://en.wikipedia.org/wiki/CHIP-8](https://en.wikipedia.org/wiki/CHIP-8)
 
-Compile and auto-run: `cd rusty8/rust && cargo run`  
-Compile for release: `cd rusty8/rust && cargo build --release`
 
-For more info about rust & cargo look at their documentation, it's really awesome.
 
-## Frontend
-The fronend is written in NodeJS/HTML/CSS. It uses Electron [INSERT LINK HERE], which is a
-cross platform desktop application framework. It's developed by Github and used in many projects,
-including the Atom editor.
-
-### Building the frontend
-You need to install the latest NodeJS version [INSERT LINK] and Node's package manager npm [INSERT LINK].
-
-Then run: `cd rusty8/node && npm install && npm start`
-
-This fetches all dependencies and runs the app.
-
-## TODOs
-- Everything
 

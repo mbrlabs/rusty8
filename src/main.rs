@@ -31,7 +31,7 @@ fn main() {
 	// load rom
 	let args: Vec<String> = env::args().collect();
 	if args.len() != 2 { 
-		panic!("DUruuuuuuuuuuuuuurrrrrrrrrrrr");
+		panic!("No ROM specified");
 	}
 	let path_to_rom = &args[1];
 	println!("Loading ROM: {}", path_to_rom);
